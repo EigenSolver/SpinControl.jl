@@ -6,6 +6,7 @@ Theoretical study on the dynamics of a spin ensemble.
 - Electronic spin 1/2, randomly distributed in the crystal
 - Strong background field
 - Control via a external magnetic field
+  
 
 The dynamics can be studied in both theoretical and numerical approach
 
