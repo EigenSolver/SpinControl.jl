@@ -1,17 +1,15 @@
 # Master Thesis Project @ TU Delft
 
-Theoretical study on the dynamics of a spin ensemble.
+Theoretical study on the dynamics of a disordered spin ensemble. 
 
-- Highly disordered quantum many body system
-- Electronic spin 1/2, randomly distributed in the crystal
+
+- Electronic spin 1/2, randomly distributed
+- Dipolar interaction
 - Strong background field
-- Control via a external magnetic field
+- Driving via a external magnetic field
   
 
-The dynamics can be studied in both theoretical and numerical approach
-
-1. Write the Hamiltonian of the system, add a transverse term and do a derivation for the FID curve
-2. Construct the Hamiltonian numerical and perform time evolution
-
-Possible package used in the project
-- QuantumOptics.jl
+TODO list:
+1. Testing, unit test, sanity check.
+2. Time setting, adaptive maximum time and minimum time.
+3. 
