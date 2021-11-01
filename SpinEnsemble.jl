@@ -86,31 +86,40 @@ function transverse_threshold(p::Real, f::Real, d::Int, a::Real)
 end;
 
 
+"""
+Give a random sampling of beta, which is a combination of D
+============================
+Args:
+    D_set: a set of the coupling strengths
+"""
+beta_sampling(D_set::Vector{Float64})=sum(rand([1,-1],length(D_set)).*D_set) 
 
 """
 Get a random sampling of the f=Sx(t), under given transverse magnetic field
 ========================
 Args:
     t: discrete array marking time 
-    D_set: a set of the coupling strengths, given by the previous
+    D_set: a set of the coupling strengths
     h: strength of transverse field 
+    N: size of Monte-Carlo sampling
 """
-function f_sampling(t::Real,D_set::Vector{Float64},h::Real)
-    sigma_x=[0 1; 1 0]
-    sigma_z=[1 0; 0 -1]
-    sigma_i=[1 0; 0 1]
-    
+
+function f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real;N=1::Int)
     n=length(D_set)
-    beta_p=sum(rand([1,-1],n).*D_set) 
-    omega_p=sqrt(h^2+beta_p^2)/2 # notice the 1/2 coef here 
-    n_p=0.5*(beta_p/omega_p*sigma_z+h/omega_p*sigma_x)
-    
-    U=cos(omega_p*t)*sigma_i-1im*sin(omega_p*t)*n_p
-    f=real(tr(sigma_x*U*sigma_x*U'))/4
-    return f
+    f_sum=zeros(length(t)) # sum
+    f_var=copy(f_sum) # square sum
+    for i in 1:N
+        beta_p=sum(rand([1,-1],n).*D_set) 
+        omega_p=sqrt(h^2+beta_p^2)/2
+        cos_p=cos.(omega_p*t).^2
+        f_p=(cos_p+(cos_p.-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        f_sum+=f_p
+        f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
+    end
+    return f_sum/N,f_var/(N-1)
 end
 
-f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real)=map(x->f_sampling(x,D_set,h),t)
+f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)=f_sampling([t],D_set,h;N=N)
 
 
 """
@@ -118,28 +127,12 @@ Options used to plot a FID line
 """
 FID_plot_options=:xformatter=>:scientific,:xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>:false
 
+
 """
-Standard moving average function, with given order and filling option
-========================
-Args:
-    vs: data array 
-    n: number of data for smoothing
-    order: `:backward` or ':forward', smoothing start from begning/ending of the array
-    fill: option, wether to fill the missed data points to keep the array at same length
-Return:
-    a smoothened array
+Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
+=============================
+
 """
-function moving_average(vs::AbstractArray{<:Number},n::Int; order=:backward, fill=:true)
-    l=length(vs)
-    if order==:forward
-        ma=[sum(vs[i:(i+n-1)])/n for i in 1:l-n+1 ]
-        if fill append!(ma,[mean(vs[i:l]) for i in l-n+2:l]) end
-        return ma
-    elseif order==:backward
-        ma=[sum(vs[i-(n-1):i])/n for i in n:l]
-        if fill prepend!(ma,[mean(vs[1:i]) for i in 1:n-1]) end
-        return ma
-    else
-        println("Invalid order option")
-    end
-end;
+function t_adaptive(D::Vector{Float64})
+    return 
+end
