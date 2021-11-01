@@ -131,8 +131,16 @@ FID_plot_options=:xformatter=>:scientific,:xlabel=>L"t", :ylabel=>L"$\langle S_x
 """
 Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
 =============================
-
+Args:
+    D: a set of coupling strengths
+    M: sampling size
+    len: size of the generated time array 
+Return:
+    an array of time points
 """
-function t_adaptive(D::Vector{Float64})
-    return 
+function t_adaptive(D::Vector{Float64},M::Int=500;len=500::Int)
+    sample=abs.([beta_sampling(D) for i in 1:M])
+    omega_m,omega_std=mean(sample),std(sample)
+    T=2pi/(omega_m+2*omega_std)
+    return collect(0:T/len:T)
 end
