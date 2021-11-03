@@ -119,7 +119,19 @@ function f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real;N=1
     return f_sum/N,f_var/(N-1)
 end
 
-f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)=f_sampling([t],D_set,h;N=N)
+function f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)
+    n=length(D_set)
+    f_sum=0.0; f_var=0.0 # sum / square sum
+    for i in 1:N
+        beta_p=sum(rand([1,-1],n).*D_set) 
+        omega_p=sqrt(h^2+beta_p^2)/2
+        cos_p=cos(omega_p*t)^2
+        f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        f_sum+=f_p
+        f_var+= i>1 ? (i*f_p-f_sum)^2/(i*(i-1)) : f_var
+    end
+    return f_sum/N,f_var/(N-1)
+end
 
 
 """
