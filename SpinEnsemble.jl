@@ -4,16 +4,6 @@ using LaTeXStrings
 using Plots
 
 """
-Args:
-    N: number of point generated
-    dim: dimension of the space
-    a: scaling factor 
-Return:
-    an array of N random location vectors, in given dimension, scaled by a at range [-a/2,a/2]
-"""
-rand_loc(N::Int,dim::Int,a=1.0::Real)=a*(collect(rand(Float64,dim).-1/2 for i in 1:N))
-
-"""
 Given the locations of central spin and its bath spin, return the vector set from the central spin to bath 
 ===============
 Args:
@@ -22,9 +12,11 @@ Args:
 Return:
     the vector set from the central spin to bath 
 """
-bath_vector(loc0::Vector{Float64},loc_bath::Vector{Vector{Float64}})=map(x->x-loc0,loc_bath)
+bath_vectors(loc0::Vector{Float64},loc_bath::Vector{Vector{Float64}})=map(x->x-loc0,loc_bath)
 
 """
+Calculate the dipolar interaction strength given r and z0
+===============
 Args:
     r: point vectors from one loc to another  
     vec1,vec2:location vectors
@@ -49,16 +41,15 @@ Returns:
 # use for the case when the central spin is not at zero
 bath_dipolar_coefs(vec_bath::Vector{Vector{Float64}},z0=append!(zeros(length(vec_bath[end])-1),1)::Vector{Float64})=map(x->dipolar_coef(x,z0), vec_bath);
 
-
 """
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath
-================
+===============
 Args:
     N: number of spin in bath 
     dim: dimension
     a: scale of ensemble
 """
-rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(rand_loc(N,dim,a))
+rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(a*[rand(Float64,dim)-1/2 for i in 1:N])
 
 """
 Args:
@@ -73,7 +64,7 @@ ensemble_FID(t::AbstractVector{<:Real},D::Vector{Float64})=map(x->ensemble_FID(x
 
 """
 Find the amplitude of tranverse magnetic field being stronger than given threshold of the coupling strength
-=======================
+===============
 Args:
     f: density of the spins
     a: 1d scale of the ensemble
@@ -88,7 +79,7 @@ end;
 
 """
 Give a random sampling of beta, which is a combination of D
-============================
+===============
 Args:
     D_set: a set of the coupling strengths
 """
@@ -96,7 +87,7 @@ beta_sampling(D_set::Vector{Float64})=sum(rand([1,-1],length(D_set)).*D_set)
 
 """
 Get a random sampling of the f=Sx(t), under given transverse magnetic field
-========================
+===============
 Args:
     t: discrete array marking time 
     D_set: a set of the coupling strengths
@@ -119,7 +110,19 @@ function f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real;N=1
     return f_sum/N,f_var/(N-1)
 end
 
-f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)=f_sampling([t],D_set,h;N=N)
+function f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)
+    n=length(D_set)
+    f_sum=0.0; f_var=0.0 # sum / square sum
+    for i in 1:N
+        beta_p=sum(rand([1,-1],n).*D_set) 
+        omega_p=sqrt(h^2+beta_p^2)/2
+        cos_p=cos(omega_p*t)^2
+        f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        f_sum+=f_p
+        f_var+= i>1 ? (i*f_p-f_sum)^2/(i*(i-1)) : f_var
+    end
+    return f_sum/N,f_var/(N-1)
+end
 
 
 """
@@ -130,7 +133,7 @@ FID_plot_options=:xformatter=>:scientific,:xlabel=>L"t", :ylabel=>L"$\langle S_x
 
 """
 Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
-=============================
+===============
 Args:
     D: a set of coupling strengths
     M: sampling size
@@ -144,3 +147,12 @@ function t_adaptive(D::Vector{Float64},M::Int=500;len=500::Int)
     T=2pi/(omega_m+2*omega_std)
     return collect(0:T/len:T)
 end
+
+"""
+Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
+===============
+"""
+function ensemble_average_FID(M::Int, N::Int)
+    return 0
+end
+
