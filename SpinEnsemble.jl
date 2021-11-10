@@ -2,6 +2,7 @@ using LinearAlgebra
 using Statistics
 using LaTeXStrings
 using Plots
+using Random
 
 """
 Given the locations of central spin and its bath spin, return the vector set from the central spin to bath 

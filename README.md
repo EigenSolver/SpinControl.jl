@@ -8,8 +8,3 @@ Theoretical study on the dynamics of a disordered spin ensemble.
 - Strong background field
 - Driving via a external magnetic field
   
-
-TODO list:
-1. Testing, unit test, sanity check.
-2. Time setting, adaptive maximum time and minimum time.
-3. 
