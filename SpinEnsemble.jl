@@ -1,9 +1,8 @@
 using LinearAlgebra
 using Statistics
-using LaTeXStrings
-using Plots
 using Random
 
+include("RandLoctions.jl")
 """
 Given the locations of central spin and its bath spin, return the vector set from the central spin to bath 
 ===============
@@ -13,7 +12,7 @@ Args:
 Return:
     the vector set from the central spin to bath 
 """
-bath_vectors(loc0::Vector{Float64},loc_bath::Vector{Vector{Float64}})=map(x->x-loc0,loc_bath)
+bath_vectors(loc0::Vector{<:Real},loc_bath::Matrix{<:Real})=map(x->x-loc0,eachrow(loc_bath))
 
 """
 Calculate the dipolar interaction strength given r and z0
@@ -25,8 +24,9 @@ Args:
 Return:
     D: coefficient of the dipolar interaction
 """
-function dipolar_coef(r::Vector{Float64},z0::Vector{Float64})
-    cosθ=dot(r,z0)/(norm(r)*norm(z0)) #calculate the cos(θ) between the vector and the z axis
+function dipolar_coef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
+    # suppose z0 is already normalized
+    cosθ=dot(r,z0)/norm(r) #calculate the cos(θ) between the vector and the z axis
     D=0.5*(1-3cosθ^2)/norm(r)^3
     return D
 end;
@@ -39,9 +39,11 @@ Args:
 Returns:
     the list of dipolar coupling strength between the centered spin and bath
 """
+function bath_dipolar_coefs(vec_bath::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
+    normalize!(z0)
+    map(x->dipolar_coef(x,z0), eachrow(vec_bath))
+end
 # use for the case when the central spin is not at zero
-bath_dipolar_coefs(vec_bath::Vector{Vector{Float64}},z0=append!(zeros(length(vec_bath[end])-1),1)::Vector{Float64})=map(x->dipolar_coef(x,z0), vec_bath);
-
 """
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath
 ===============
@@ -50,7 +52,11 @@ Args:
     dim: dimension
     a: scale of ensemble
 """
-rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(a*[rand(Float64,dim)-1/2 for i in 1:N])
+rand_bath_dipolar_coefs(N::Int,dim::Int,scaling_a=1::Real)=bath_dipolar_coefs(rand_locs(N,dim,a))
+
+function rand_bath_dipolar_coefs(N::Int, bound::Tuple{Real,Real}, method=:shperical)
+    
+end
 
 """
 Args:
@@ -59,8 +65,8 @@ Args:
 Returns:
     ensemble free induction decay curve at given time t
 """
-ensemble_FID(t::Real,D::Vector{Float64})=mapreduce(cos,*,D*t)/2;
-ensemble_FID(t::AbstractVector{<:Real},D::Vector{Float64})=map(x->ensemble_FID(x,D),t);
+ensemble_FID(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
+ensemble_FID(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->ensemble_FID(x,D),t);
 
 
 """
@@ -84,7 +90,7 @@ Give a random sampling of beta, which is a combination of D
 Args:
     D_set: a set of the coupling strengths
 """
-beta_sampling(D_set::Vector{Float64})=sum(rand([1,-1],length(D_set)).*D_set) 
+beta_sampling(D_set::Vector{<:Real})=sum(rand([1,-1],length(D_set)).*D_set) 
 
 """
 Get a random sampling of the f=Sx(t), under given transverse magnetic field
@@ -96,7 +102,7 @@ Args:
     N: size of Monte-Carlo sampling
 """
 
-function f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real;N=1::Int)
+function f_sampling(t::AbstractVector{<:Real},D_set::Vector{<:Real},h::Real;N=1::Int)
     n=length(D_set)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
@@ -111,7 +117,7 @@ function f_sampling(t::AbstractVector{<:Real},D_set::Vector{Float64},h::Real;N=1
     return f_sum/N,f_var/(N-1)
 end
 
-function f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)
+function f_sampling(t::Real,D_set::Vector{<:Real},h::Real;N=1::Int)
     n=length(D_set)
     f_sum=0.0; f_var=0.0 # sum / square sum
     for i in 1:N
@@ -125,13 +131,6 @@ function f_sampling(t::Real,D_set::Vector{Float64},h::Real;N=1::Int)
     return f_sum/N,f_var/(N-1)
 end
 
-
-"""
-Options used to plot a FID line
-"""
-FID_plot_options=:xformatter=>:scientific,:xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>:false
-
-
 """
 Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
 ===============
@@ -142,10 +141,10 @@ Args:
 Return:
     an array of time points
 """
-function t_adaptive(D::Vector{Float64},M::Int=500;len=500::Int)
+function t_adaptive(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
     sample=abs.([beta_sampling(D) for i in 1:M])
     omega_m,omega_std=mean(sample),std(sample)
-    T=2pi/(omega_m+2*omega_std)
+    T=2pi/(omega_m+n_sigma*omega_std)
     return collect(0:T/len:T)
 end
 
@@ -156,4 +155,5 @@ Given a set of coupling strength, determine the maximum time scale and minimum t
 function ensemble_average_FID(M::Int, N::Int)
     return 0
 end
+
 
