@@ -1,8 +1,7 @@
 using LinearAlgebra
 using Statistics
-using Random
-
 include("RandLoctions.jl")
+
 """
 Given the locations of central spin and its bath spin, return the vector set from the central spin to bath 
 ===============
@@ -52,7 +51,7 @@ Args:
     dim: dimension
     a: scale of ensemble
 """
-rand_bath_dipolar_coefs(N::Int,dim::Int,scaling_a=1::Real)=bath_dipolar_coefs(rand_locs(N,dim,a))
+rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(rand_locs(N,dim,a))
 
 function rand_bath_dipolar_coefs(N::Int, bound::Tuple{Real,Real}, method=:shperical)
     

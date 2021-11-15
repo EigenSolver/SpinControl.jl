@@ -9,7 +9,7 @@ Args:
 Return:
    a matrix of size (N,d) N random location vectors distributed in a d-dimensional cube, scaled by a at range (-a,a)
 """
-rand_locs(N::Int,dim::Int,a::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
+rand_locs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
 
 """
 Args:
@@ -20,13 +20,10 @@ Args:
 Return:
    a matrix of size (N,3) N random location vectors distributed in a 3D cube, scaled by a at range (-b,-a)∪(a,b)
 """
-function rand_locs_cubic(a::Real, b::Real; N=1, projection=:false)
+function rand_locs_cubic(a::Real, b::Real; N=1::Int, dim=3)
     M=zeros(N,3)
-    rand!(M,[1,-1])
+    rand!(@view(M[:,1:dim]),[1,-1])
     M.*=rand(N,3).*(b-a).+a
-    if projection
-        M[:,end].=0.0
-    end
     M
 end
 
