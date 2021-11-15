@@ -1,5 +1,6 @@
 using LinearAlgebra
 using Statistics
+import ProgressMeter: @showprogress
 include("RandLoctions.jl")
 
 """
@@ -50,11 +51,31 @@ Args:
     N: number of spin in bath 
     dim: dimension
     a: scale of ensemble
+    [bound]: tuple, indicate bounds of sampling range 
+Return:
+    (N,dim) dimension matrix 
 """
 rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(rand_locs(N,dim,a))
 
-function rand_bath_dipolar_coefs(N::Int, bound::Tuple{Real,Real}, method=:shperical)
+function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
+    @assert dim>0 && dim<4
+    @assert method in (:spherical, :cubic)
+    a,b=bound
+    @assert a>0 && b>0 
+
     
+    if method==:cubic
+        M=rand_locs_cubic(a,b, N=N, dim=dim)
+    else
+        if dim==3
+            M=rand_locs_spherical(a,b,N=N,projection=:false)
+        elseif dim==2
+            M=rand_locs_spherical(a,b,N=N,projection=:true)
+        else
+            M=rand_locs_cubic(a,b,N=N,dim=1)
+        end
+    end
+    bath_dipolar_coefs(M)
 end
 
 """
@@ -148,11 +169,26 @@ function t_adaptive(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
 end
 
 """
-Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
-===============
+...
+# Arguments
+- `t::AbstractVector{<:Real}`: the time array for the decay curve.
+- `n_D::Integer`: the number of samplings on D set.
+- `sampling_D`: the function to sample over D
+...
 """
-function ensemble_average_FID(M::Int, N::Int)
-    return 0
+function ensemble_average_FID(
+    t::AbstractVector{<:Real}, 
+    n_D::Int,
+    sampling_D)
+    
+    f_sum=zeros(length(t))
+    f_var=copy(f_sum)
+    @showprogress for i in 1:n_D
+        f_d=ensemble_FID(t, sampling_D())
+        f_sum+=f_d
+        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
+    end
+    return f_sum/n_D, f_var/(n_D-1)
 end
 
 

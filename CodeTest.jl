@@ -2,7 +2,6 @@
 using Test
 import LinearAlgebra: norm
 include("RandLoctions.jl")
-include("SpinEnsemble.jl")
 
 M=rand_locs_spherical(1,10,N=1000)
 
@@ -34,3 +33,21 @@ M=rand_locs(1000,10,4)
 @test size(M)==(1000,10)
 @test typeof(M)<:Matrix{Float64}
 @test maximum(M)<4
+
+
+## Check datatype passing
+rand_bath_dipolar_coefs(1000,2,(1,3),method=:cubic)
+rand_bath_dipolar_coefs(1000,3,(1,3),method=:spherical)
+rand_bath_dipolar_coefs(1000,2,(1,3),method=:spherical)
+rand_bath_dipolar_coefs(1000,1,(1,3),method=:spherical)
+
+## Check by Visualization
+include("Visualization.jl")
+visual_ensemble(rand_locs_spherical(1,2,N=300,projection=:false))
+visual_ensemble(rand_locs_spherical(1,2,N=300,projection=:true))
+
+visual_ensemble(rand_locs_cubic(1,2,N=300,dim=3))
+visual_ensemble(rand_locs_cubic(1,2,N=300,dim=2))
+visual_ensemble(rand_locs_cubic(1,2,N=300,dim=1))
+
+visual_ensemble(rand_locs(300,3,2))

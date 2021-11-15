@@ -23,7 +23,13 @@ Return:
 function rand_locs_cubic(a::Real, b::Real; N=1::Int, dim=3)
     M=zeros(N,3)
     rand!(@view(M[:,1:dim]),[1,-1])
-    M.*=rand(N,3).*(b-a).+a
+    @view(M[:,1]).*=rand(N).*(b-a).+a
+    if dim>1
+        @view(M[:,2:dim]).*=rand(N,dim-1).*b
+        for i in 1:N
+            shuffle!(@view M[i,1:dim])
+        end
+    end
     M
 end
 
@@ -37,19 +43,19 @@ Args:
 Return:
     a matrix of size (N,3), N random location vectors distributed in a 3D sphere
 """
-function rand_locs_spherical(r_max=1.0::Real, r_min=0.0::Real; N=1::Int, projection=:false)
+function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int, projection=:false)
     M=zeros(N,3)
     r=rand(N).*(r_max-r_min).+r_min
     ϕ=rand(N).*2pi
-    if projection
-        θ=ones(N).*pi/2
-    else
-        θ=rand(N).*pi
-    end
+    θ=rand(N).*pi
     
-    M[:,1]=r.*sin.(θ).*cos.(ϕ)
-    M[:,2]=r.*sin.(θ).*sin.(ϕ)
-    M[:,3]=r.*cos.(θ)
-
+    if projection
+        M[:,1]=r.*cos.(ϕ)
+        M[:,2]=r.*sin.(ϕ)      
+    else
+        M[:,1]=r.*sin.(θ).*cos.(ϕ)
+        M[:,2]=r.*sin.(θ).*sin.(ϕ)
+        M[:,3]=r.*cos.(θ)
+    end
     M
 end
