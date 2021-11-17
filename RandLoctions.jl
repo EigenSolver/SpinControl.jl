@@ -45,9 +45,9 @@ Return:
 """
 function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int, projection=:false)
     M=zeros(N,3)
-    r=rand(N).*(r_max-r_min).+r_min
+    r=cbrt.(rand(N).*(r_max^3-r_min^3).+r_min^3)
     ϕ=rand(N).*2pi
-    θ=rand(N).*pi
+    θ=acos.(2*rand(N).-1)
     
     if projection
         M[:,1]=r.*cos.(ϕ)
