@@ -2,7 +2,9 @@
 using Test
 import LinearAlgebra: norm
 include("RandLoctions.jl")
+include("Visualization.jl")
 
+##
 M=rand_locs_spherical(1,10,N=1000)
 
 ## Test the datatype
@@ -42,7 +44,6 @@ rand_bath_dipolar_coefs(1000,2,(1,3),method=:spherical)
 rand_bath_dipolar_coefs(1000,1,(1,3),method=:spherical)
 
 ## Check by Visualization
-include("Visualization.jl")
 visual_ensemble(rand_locs_spherical(1,2,N=300,projection=:false))
 visual_ensemble(rand_locs_spherical(1,2,N=300,projection=:true))
 

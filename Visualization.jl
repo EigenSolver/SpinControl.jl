@@ -53,6 +53,45 @@ function visual_FID(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real};
 
         Y_fit=logscale ? f_model(X,fit.param) : exp.(f_model(X,fit.param))
 
-        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label="fitting")
+        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label="fitting s={%d}",s)
     end 
 end
+
+
+function visual_coupling(sample::AbstractArray{Float64}; 
+    bound=(-20,20), bin_num=60::Int, logscale=:false, fitting=:false)
+    
+    bin_set=range(bound[1], bound[2], length = bin_num)
+    if logscale
+        fig=histogram(sample, bins = bin_set, xlabel=L"D_j", ylabel=L"\Delta P", 
+        yaxis =:log10,
+        norm=true, labels=:false)
+    else
+        fig=histogram(sample, bins = bin_set, xlabel=L"D_j", ylabel=L"\Delta P", 
+        norm=true, labels=:false)
+    end
+    println("max: ",maximum(sample)," min: ",minimum(sample))
+    println("avg: ", mean(sample)," std: ",std(sample))
+    display(fig)
+end;
+
+
+function visual_effective_beta(sample::AbstractArray{Float64}; bin_num=60::Int, use_abs=:false, fitting=:true)
+    if use_abs 
+        sample=abs.(sample)
+    end
+
+    fig=histogram(sample, bins = bin_num, xlabel=L"\beta_p", ylabel=L"\Delta P", norm=true,label="Beta Sample")
+    println("max: ",maximum(sample)," min: ",minimum(sample))
+    println("avg: ", mean(sample),"std: ",std(sample))
+    
+    if fitting
+        normal_est=fit(Normal{Float64},sample)
+        mu,sigma=params(normal_est)
+        bins=LinRange(mu-4sigma,mu+4sigma,bin_num*2+1)
+        plot!(bins,pdf(normal_est,bins),linecolor=:red,linestyle=:dash,label="Normal Distribution")
+        println("likelihood: ", ℯ^loglikelihood(normal_est,sample))
+    end
+
+    display(fig)
+end;
