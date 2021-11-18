@@ -1,7 +1,18 @@
+
+module SpinEnsembles
+
 using LinearAlgebra
 using Statistics
 import ProgressMeter: @showprogress
+
+export bath_dipolar_coefs, rand_bath_dipolar_coefs,
+       f_sampling, t_adaptive, ensemble_FID, ensemble_average_FID,
+       visual_coupling, visual_effective_beta, visual_ensemble, visual_FID
+
+
 include("RandLoctions.jl")
+include("Visualization.jl")
+
 
 """
 Given the locations of central spin and its bath spin, return the vector set from the central spin to bath 
@@ -68,9 +79,9 @@ function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; meth
         M=rand_locs_cubic(a,b, N=N, dim=dim)
     else
         if dim==3
-            M=rand_locs_spherical(a,b,N=N,projection=:false)
+            M=rand_locs_spherical(a,b,N=N)
         elseif dim==2
-            M=rand_locs_spherical(a,b,N=N,projection=:true)
+            M=rand_locs_polar(a,b,N=N)
         else
             M=rand_locs_cubic(a,b,N=N,dim=1)
         end
@@ -191,4 +202,4 @@ function ensemble_average_FID(
     return f_sum/n_D, f_var/(n_D-1)
 end
 
-
+end

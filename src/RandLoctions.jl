@@ -39,23 +39,37 @@ Args:
     r_min: lower bound of sampling radius
     r_max: upper bound of sampling radius
     N: numer of locations 
-    projection: a boolean to decide whether to project the points to a 2D plane
 Return:
     a matrix of size (N,3), N random location vectors distributed in a 3D sphere
 """
-function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int, projection=:false)
+function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
     M=zeros(N,3)
     r=cbrt.(rand(N).*(r_max^3-r_min^3).+r_min^3)
     ϕ=rand(N).*2pi
     θ=acos.(2*rand(N).-1)
+
+    M[:,1]=r.*sin.(θ).*cos.(ϕ)
+    M[:,2]=r.*sin.(θ).*sin.(ϕ)
+    M[:,3]=r.*cos.(θ)
+
+    M
+end
+
+"""
+Args:
+    r_min: lower bound of sampling radius
+    r_max: upper bound of sampling radius
+    N: numer of locations 
+Return:
+    a matrix of size (N,3), N random location vectors distributed in a 3D sphere
+"""
+function rand_locs_polar(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
+    M=zeros(N,3)
+    r=sqrt.(rand(N).*(r_max^2-r_min^2).+r_min^2)
+    ϕ=rand(N).*2pi
     
-    if projection
-        M[:,1]=r.*cos.(ϕ)
-        M[:,2]=r.*sin.(ϕ)      
-    else
-        M[:,1]=r.*sin.(θ).*cos.(ϕ)
-        M[:,2]=r.*sin.(θ).*sin.(ϕ)
-        M[:,3]=r.*cos.(θ)
-    end
+    M[:,1]=r.*cos.(ϕ)
+    M[:,2]=r.*sin.(ϕ)      
+
     M
 end
