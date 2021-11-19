@@ -1,4 +1,3 @@
-
 module SpinEnsembles
 
 using LinearAlgebra

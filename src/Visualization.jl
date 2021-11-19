@@ -53,7 +53,7 @@ function visual_FID(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real};
 
         Y_fit=logscale ? f_model(X,fit.param) : exp.(f_model(X,fit.param))
 
-        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label="fitting s={%d}",s)
+        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label=L"fitting \exp(-(\frac{t}{T_2})^$s)")
     end 
 end
 

@@ -8,3 +8,8 @@
 - Dipolar interaction
 - Strong background field
 - Driving via an external magnetic field -->
+
+*Todo list*
+- [ ] Write documentation 
+- [ ] Precompile the package and use it in the notebooks
+- [X] Update dependencies
