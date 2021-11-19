@@ -2,6 +2,8 @@ using LaTeXStrings
 using Plots
 import LsqFit: curve_fit
 
+plotlyjs()
+
 """
 Options used to plot a FID line
 """
@@ -16,7 +18,6 @@ Return:
     interactive 3D plot in PlotlyJS
 """
 function visual_ensemble(spin_locs::Matrix{Float64})
-    plotlyjs()
     scatter(spin_locs[:,1],spin_locs[:,2],spin_locs[:,3],
     xlabel="x",
     ylabel="y",
