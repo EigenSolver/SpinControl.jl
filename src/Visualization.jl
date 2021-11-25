@@ -2,7 +2,7 @@ using LaTeXStrings
 using Plots
 import LsqFit: curve_fit
 
-plotlyjs()
+# plotlyjs()
 
 """
 Options used to plot a FID line
@@ -39,7 +39,7 @@ function visual_FID(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real};
 
     f= logscale ? log.(FID_curve) : FID_curve
 
-    scatter(t,f;FID_plot_options..., labels="simulation",
+    fig = scatter(t,f;FID_plot_options..., labels="simulation",
     markershape = :vline,
     markersize = 6,
     markeralpha = 0.9,
@@ -53,9 +53,12 @@ function visual_FID(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real};
         fit = curve_fit(f_model, X, Y, p0);
 
         Y_fit=logscale ? f_model(X,fit.param) : exp.(f_model(X,fit.param))
+        println("T_2 = ",fit.param[1])
+        println("Residual: ", mean(fit.resid))
 
-        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label=L"fitting \exp(-(\frac{t}{T_2})^$s)")
+        plot!(X, Y_fit,linestyle=:dash,linewidth=3,label=L"fitting $e^{-(t/T_2)^{d/3}}$")
     end 
+    display(fig)
 end
 
 
