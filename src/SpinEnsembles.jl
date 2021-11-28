@@ -5,7 +5,9 @@ using Statistics
 import ProgressMeter: @showprogress
 
 export bath_dipolar_coefs, rand_bath_dipolar_coefs,
-       f_sampling, t_adaptive, ensemble_FID, ensemble_average_FID,
+       f_sampling, beta_sampling, t_adaptive, 
+       ensemble_FID, ensemble_average_FID,
+       transverse_threshold, 
        visual_coupling, visual_effective_beta, visual_ensemble, visual_FID
 
 

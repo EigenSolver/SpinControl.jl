@@ -1,6 +1,7 @@
 using LaTeXStrings
 using Plots
 import LsqFit: curve_fit
+import Distributions: Normal, loglikelihood, fit, pdf, params
 
 # plotlyjs()
 
@@ -80,14 +81,17 @@ function visual_coupling(sample::AbstractArray{Float64};
 end;
 
 
-function visual_effective_beta(sample::AbstractArray{Float64}; bin_num=60::Int, use_abs=:false, fitting=:true)
+function visual_effective_beta(sample::AbstractArray{Float64};
+    bound=(-20,20), bin_num=60::Int, use_abs=:false, fitting=:true)
+
     if use_abs 
         sample=abs.(sample)
     end
 
-    fig=histogram(sample, bins = bin_num, xlabel=L"\beta_p", ylabel=L"\Delta P", norm=true,label="Beta Sample")
+    bin_set=range(bound[1], bound[2], length = bin_num)
+    fig=histogram(sample, bins = bin_set, xlabel=L"\beta_p", ylabel=L"\Delta P", norm=true,label="Beta Sample")
     println("max: ",maximum(sample)," min: ",minimum(sample))
-    println("avg: ", mean(sample),"std: ",std(sample))
+    println("avg: ", mean(sample)," std: ",std(sample))
     
     if fitting
         normal_est=fit(Normal{Float64},sample)
