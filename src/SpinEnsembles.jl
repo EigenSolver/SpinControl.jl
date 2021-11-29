@@ -7,7 +7,6 @@ import ProgressMeter: @showprogress
 export dipolar_coef, bath_dipolar_coefs, rand_bath_dipolar_coefs,
        f_sampling, beta_sampling, t_adaptive, 
        ensemble_FID, ensemble_average_FID,
-       transverse_threshold, 
        visual_coupling, visual_effective_beta, visual_ensemble, visual_FID
 
 
@@ -115,49 +114,43 @@ function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; meth
 end
 
 """
+    ensemble_FID(t, D)
+
+Given a set of dipolar coupling constant, 
+calculate et the free induction decay (DIF) value at given time `t`, or the FID decay curve for a time array `t`
+
 # Arguments
-    t: time, float or array of float
-    D: coupling strength of dipolar interactions, usually a array of floats
-Returns:
-    ensemble free induction decay curve at given time t
+- `t`: time, float or array of float
+- `D`: coupling strength of dipolar interactions, usually a array of floats
 """
 ensemble_FID(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
 ensemble_FID(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->ensemble_FID(x,D),t);
 
+@doc raw"""
+    beta_sampling(D_set)
 
-"""
-Find the amplitude of tranverse magnetic field being stronger than given threshold of the coupling strength
- 
+Give a random sampling of beta, which is a combination of `D_j`,
+```math
+\beta_p = \sum_j p_j \,D_j,\; p_j=\pm 1
+```
+
 # Arguments
-    f: density of the spins
-    a: 1d scale of the ensemble
-    p: probability threshold
-"""
-function transverse_threshold(p::Real, f::Real, d::Int, a::Real)
-    N=floor(Int,a^d*f)
-    D=rand_bath_dipolar_coefs(N,d,a)
-    quantile(D, p)
-end;
-
-
-"""
-Give a random sampling of beta, which is a combination of D
- 
-# Arguments
-    D_set: a set of the coupling strengths
+- `D_set::Vector{<:Real}`: a set of the coupling strengths
 """
 beta_sampling(D_set::Vector{<:Real})=sum(rand([1,-1],length(D_set)).*D_set) 
 
+
 """
-Get a random sampling of the f=Sx(t), under given transverse magnetic field
+    f_sampling(t, D_set, h; [N])
+
+Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
  
 # Arguments
-    t: discrete array marking time 
-    D_set: a set of the coupling strengths
-    h: strength of transverse field 
-    N: size of Monte-Carlo sampling
+- `t`: discrete array marking time 
+- `D_set`: a set of the coupling strengths
+- `h`: strength of transverse field 
+- `N`: size of Monte-Carlo sampling
 """
-
 function f_sampling(t::AbstractVector{<:Real},D_set::Vector{<:Real},h::Real;N=1::Int)
     n=length(D_set)
     f_sum=zeros(length(t)) # sum
@@ -188,14 +181,17 @@ function f_sampling(t::Real,D_set::Vector{<:Real},h::Real;N=1::Int)
 end
 
 """
-Given a set of coupling strength, determine the maximum time scale and minimum time scale required for the problem
+    t_adaptive(D, N; len=500, n_sigma=2)
+
+Given a set of coupling strength, determine the average `beta` by sampling.
+The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
+adding a standard deviation to `beta` given by `n_sigma`
  
 # Arguments
-    D: a set of coupling strengths
-    M: sampling size
-    len: size of the generated time array 
-Return:
-    an array of time points
+- `D::Vector{Real}`: a set of coupling strengths
+- `M`: sampling size
+- `len`: size of the generated time array 
+- `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
 """
 function t_adaptive(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
     sample=abs.([beta_sampling(D) for i in 1:M])
@@ -205,18 +201,14 @@ function t_adaptive(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
 end
 
 """
-...
+    ensemble_average_FID(t, n_D, sampling_D)
+
 # Arguments
-- `t::AbstractVector{<:Real}`: the time array for the decay curve.
+- `t`: the time array for the decay curve.
 - `n_D::Integer`: the number of samplings on D set.
-- `sampling_D`: the function to sample over D
-...
+- `sampling_D::function`: the function to sample over D
 """
-function ensemble_average_FID(
-    t::AbstractVector{<:Real}, 
-    n_D::Int,
-    sampling_D)
-    
+function ensemble_average_FID(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:n_D

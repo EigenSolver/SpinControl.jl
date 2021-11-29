@@ -1,26 +1,32 @@
 using Random
 
 """
-General method to generate a set of n dimensional locations array
-Args:
-    N: numer of locations 
-    dim: dimension 
-    a: scaling factor
-Return:
-   a matrix of size (N,d) N random location vectors distributed in a d-dimensional cube, scaled by a at range (-a,a)
+    rand_locs(N, dim, a)
+
+General method to generate a set of n dimensional locations array. 
+a matrix of size (N,d) N random location vectors distributed in a d-dimensional cube, scaled by a at range (-a,a)
+
+# Arguments
+- `N`: numer of locations 
+- `dim`: dimension 
+- `a`: scaling factor
 """
 rand_locs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
 
 """
-Args:
-    a: lower bound of sampling range
-    b: upper bound of sampling range
-    N: numer of locations 
-    projection: a boolean to decide whether to project the points to a 2D plane
-Return:
-   a matrix of size (N,3) N random location vectors distributed in a 3D cube, scaled by a at range (-b,-a)∪(a,b)
+    rand_locs_cubic(a, b; N=1, dim=3)
+
+Generate `N`` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)``
+
+# Arguments
+- `a`: lower bound of sampling range
+- `b`: upper bound of sampling range
+- `N`: numer of locations, in `[1,2,3]`
+- `dim`: dimension of the space
 """
 function rand_locs_cubic(a::Real, b::Real; N=1::Int, dim=3)
+    @assert N<=3
+
     M=zeros(N,3)
     rand!(@view(M[:,1:dim]),[1,-1])
     @view(M[:,1]).*=rand(N).*(b-a).+a
@@ -35,12 +41,14 @@ end
 
 
 """
-Args:
-    r_min: lower bound of sampling radius
-    r_max: upper bound of sampling radius
-    N: numer of locations 
-Return:
-    a matrix of size (N,3), N random location vectors distributed in a 3D sphere
+    rand_locs_spherical(r_min, r_max; N)
+
+Generate `N` random location vectors distributed in a 3D sphere
+
+# Arguments
+- `r_min`: lower bound of sampling radius
+- `r_max`: upper bound of sampling radius
+- `N`: numer of locations 
 """
 function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
     M=zeros(N,3)
@@ -56,10 +64,14 @@ function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
 end
 
 """
-Args:
-    r_min: lower bound of sampling radius
-    r_max: upper bound of sampling radius
-    N: numer of locations 
+rand_locs_spherical(r_min, r_max; N)
+
+Generate `N` random location vectors distributed in a 2D plate
+
+# Arguments
+- `r_min`: lower bound of sampling radius
+- `r_max`: upper bound of sampling radius
+- `N`: numer of locations 
 Return:
     a matrix of size (N,3), N random location vectors distributed in a 3D sphere
 """
