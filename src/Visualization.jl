@@ -3,8 +3,6 @@ using Plots
 import LsqFit: curve_fit
 import Distributions: Normal, loglikelihood, fit, pdf, params
 
-# plotlyjs()
-
 """
 Options used to plot a FID line
 """
