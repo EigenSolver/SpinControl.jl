@@ -1,3 +1,9 @@
+"""
+    SpinEnsembles
+
+A julia package that provides necessary functionalities to study the 
+quantum decoherence in disordered spin ensembles.
+"""
 module SpinEnsembles
 
 using LinearAlgebra
@@ -32,6 +38,8 @@ julia> bath_vectors(v0, bath)
  [1.1, 1.4, 1.5]
 ```    
 """
+bath_vectors
+
 bath_vectors(loc0::Vector{<:Real},loc_bath::Matrix{<:Real})=map(x->x-loc0,eachrow(loc_bath))
 
 """

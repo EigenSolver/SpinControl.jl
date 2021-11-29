@@ -3,15 +3,23 @@
 
 ## Functions
 
+
 ```@docs
-bath_vectors(loc0::Vector{<:Real},loc_bath::Matrix{<:Real})=map(x->x-loc0,eachrow(loc_bath))
+dipolar_coef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
 ```
 
 ```@docs
-function dipolar_coef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
+bath_dipolar_coefs(vec_bath::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
 ```
 
-<!-- ## Index
+```@docs
+rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)
+```
 
-```@index
-``` -->
+```@docs
+ensemble_FID(t::Real,D::Vector{<:Real})
+```
+
+```@docs
+beta_sampling(D_set::Vector{<:Real})
+```
