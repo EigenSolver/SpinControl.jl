@@ -148,7 +148,7 @@ function visual_effective_beta(sample::AbstractArray{Float64};
         bins=LinRange(mu-4sigma,mu+4sigma,bin_num*2+1)
         plot!(bins,map(x->pdf(normal_est,x),bins),linecolor=:red,linestyle=:dash,label="Normal Distribution")
         println("Estimation:")
-        println("mu: ", mu, "sigma: ", sigma)
+        println("mu: ", mu, " sigma: ", sigma)
         println("likelihood: ", ℯ^loglikelihood(normal_est,sample))
     end
 

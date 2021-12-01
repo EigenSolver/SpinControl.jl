@@ -121,21 +121,37 @@ function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; meth
     bath_dipolar_coefs(M)
 end
 
+
+@doc raw"""
+    dipolar_linewidth(D)
+
+Get the linewidth of D, which follows Gaussian distribution. 
+```math
+b=\sqrt{\sum_j D_j^2}
+```
+# Arguments
+- `D`: coupling strength of dipolar interactions, a array of floats
 """
+dipolar_linewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
+
+@doc raw"""
     ensemble_FID(t, D)
 
 Given a set of dipolar coupling constant, 
-calculate et the free induction decay (DIF) value at given time `t`, or the FID decay curve for a time array `t`
+calculate et the free induction decay (FID) value at given time `t`, or the FID decay curve for a time array `t`
 
+```math
+b=\sqrt{\sum_j D_j^2}
+```
 # Arguments
 - `t`: time, float or array of float
-- `D`: coupling strength of dipolar interactions, usually a array of floats
+- `D`: coupling strength of dipolar interactions, a array of floats
 """
 ensemble_FID(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
 ensemble_FID(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->ensemble_FID(x,D),t);
 
 @doc raw"""
-    beta_sampling(D_set)
+    beta_sampling(D)
 
 Give a random sampling of beta, which is a combination of `D_j`,
 ```math
@@ -143,28 +159,28 @@ Give a random sampling of beta, which is a combination of `D_j`,
 ```
 
 # Arguments
-- `D_set::Vector{<:Real}`: a set of the coupling strengths
+- `D`: coupling strength of dipolar interactions, a array of floats
 """
-beta_sampling(D_set::Vector{<:Real})=sum(rand([1,-1],length(D_set)).*D_set) 
+beta_sampling(D::Vector{<:Real})=sum(rand([1,-1],length(D)).*D) 
 
 
 """
-    f_sampling(t, D_set, h; [N])
+    f_sampling(t, D, h; [N])
 
 Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
  
 # Arguments
 - `t`: discrete array marking time 
-- `D_set`: a set of the coupling strengths
+- `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
 """
-function f_sampling(t::AbstractVector{<:Real},D_set::Vector{<:Real},h::Real;N=1::Int)
-    n=length(D_set)
+function f_sampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
+    n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
     for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D_set) 
+        beta_p=sum(rand([1,-1],n).*D) 
         omega_p=sqrt(h^2+beta_p^2)/2
         cos_p=cos.(omega_p*t).^2
         f_p=(cos_p+(cos_p.-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
@@ -174,11 +190,11 @@ function f_sampling(t::AbstractVector{<:Real},D_set::Vector{<:Real},h::Real;N=1:
     return f_sum/N,f_var/(N-1)
 end
 
-function f_sampling(t::Real,D_set::Vector{<:Real},h::Real;N=1::Int)
-    n=length(D_set)
+function f_sampling(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
+    n=length(D)
     f_sum=0.0; f_var=0.0 # sum / square sum
     for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D_set) 
+        beta_p=sum(rand([1,-1],n).*D) 
         omega_p=sqrt(h^2+beta_p^2)/2
         cos_p=cos(omega_p*t)^2
         f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
