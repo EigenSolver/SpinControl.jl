@@ -10,10 +10,10 @@ using LinearAlgebra
 using Statistics
 import ProgressMeter: @showprogress
 
-export dipolar_coef, bath_dipolar_coefs, rand_bath_dipolar_coefs,
-       f_sampling, beta_sampling, t_adaptive, 
-       ensemble_FID, ensemble_average_FID,
-       visual_coupling, visual_effective_beta, visual_ensemble, visual_FID
+export dipolarcoef, dipolarcoefs, randomcoefs,
+       fidsampling, betasampling, decaytime, 
+       fid, averagefid,
+       visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
 
 include("RandLoctions.jl")
@@ -21,29 +21,7 @@ include("Visualization.jl")
 
 
 """
-    bath_vectors(vec0, vec_bath)
-
-Given the locations of central spin and its bath spin, return the vector set from the central spin to bath.
-
-# Arguments
-- `loc0::Vector{<:Real}`, location of the central spin
-- `loc_bath::Matrix{<:Real}`: matrix, location set of the spin bath
-
-# Examples
-```jldoctest
-julia> v0 = [1, 1, 1]; bath= [1.5 1.5 1.0; 2.1 2.2 2.5];
-julia> bath_vectors(v0, bath)
-2-element Vector{Vector{Float64}}:
- [0.5, 0.5, 0.0]
- [1.1, 1.4, 1.5]
-```    
-"""
-bath_vectors
-
-bath_vectors(loc0::Vector{<:Real},loc_bath::Matrix{<:Real})=map(x->x-loc0,eachrow(loc_bath))
-
-"""
-    dipolar_coef(r, z0)
+    dipolarcoef(r, z0)
 
 Calculate the dipolar interaction strength given by vector `r` and default field at `z0`
 
@@ -54,14 +32,14 @@ Calculate the dipolar interaction strength given by vector `r` and default field
 # Examples
 ```jldoctest
 julia> v0 = [2, 2, 1]; z0=[0, 0, 1];
-julia> dipolar_coef(v0,z0)
+julia> dipolarcoef(v0,z0)
 0.01234567901234568
 julia> v0 = [1, 0, 1]; z0=[0, 0, 1];
-julia> dipolar_coef(v0,z0)
+julia> dipolarcoef(v0,z0)
 -0.08838834764831834
 ```    
 """
-function dipolar_coef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
+function dipolarcoef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
     # suppose z0 is already normalized
     cosθ=dot(r,z0)/norm(r) #calculate the cos(θ) between the vector and the z axis
     D=0.5*(1-3cosθ^2)/norm(r)^3
@@ -70,23 +48,23 @@ end;
 
 
 """
-    bath_dipolar_coefs(bath, z0)
+    dipolarcoefs(bath, z0)
 
 Get a list of dipolar coupling strength between the centered spin and bath
 
 # Arguments
-- `vec_bath::Matrix{<:Real}`: an array of vector, distance from the central spin to the spins in bath 
+- `locs::Matrix{<:Real}`: an array of vector, distance from the central spin to the spins in bath 
 - `z0::Vector{<:Real}`: the direction of external field, set to z axis by default
 """
-function bath_dipolar_coefs(vec_bath::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
+function dipolarcoefs(locs::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
     normalize!(z0)
-    map(x->dipolar_coef(x,z0), eachrow(vec_bath))
+    map(x->dipolarcoef(x,z0), eachrow(locs))
 end
 
 
 """
-    rand_bath_dipolar_coefs(N, dim, a)
-    rand_bath_dipolar_coefs(N, dim, bound, [method])
+    randomcoefs(N, dim, a)
+    randomcoefs(N, dim, bound, [method])
 
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
 totally `N` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
@@ -98,9 +76,9 @@ totally `N` spins are uniformly distributed in a `dim` dimensional cubic space w
 - `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
-rand_bath_dipolar_coefs(N::Int,dim::Int,a=1::Real)=bath_dipolar_coefs(rand_locs(N,dim,a))
+randomcoefs(N::Int,dim::Int,a=1::Real)=dipolarcoefs(rand_locs(N,dim,a))
 
-function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
+function randomcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     @assert dim>0 && dim<4
     @assert method in (:spherical, :cubic)
     a,b=bound
@@ -108,22 +86,22 @@ function rand_bath_dipolar_coefs(N::Int, dim::Int, bound::Tuple{Real,Real}; meth
 
     
     if method==:cubic
-        M=rand_locs_cubic(a,b, N=N, dim=dim)
+        M=randlocscubic(a,b, N=N, dim=dim)
     else
         if dim==3
-            M=rand_locs_spherical(a,b,N=N)
+            M=randlocsspherical(a,b,N=N)
         elseif dim==2
-            M=rand_locs_polar(a,b,N=N)
+            M=randlocspolar(a,b,N=N)
         else
-            M=rand_locs_cubic(a,b,N=N,dim=1)
+            M=randlocscubic(a,b,N=N,dim=1)
         end
     end
-    bath_dipolar_coefs(M)
+    dipolarcoefs(M)
 end
 
 
 @doc raw"""
-    dipolar_linewidth(D)
+    dipolarlinewidth(D)
 
 Get the linewidth of D, which follows Gaussian distribution. 
 ```math
@@ -132,10 +110,10 @@ b=\sqrt{\sum_j D_j^2}
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
-dipolar_linewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
+dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
 
 @doc raw"""
-    ensemble_FID(t, D)
+    fid(t, D)
 
 Given a set of dipolar coupling constant, 
 calculate et the free induction decay (FID) value at given time `t`, or the FID decay curve for a time array `t`
@@ -147,11 +125,11 @@ b=\sqrt{\sum_j D_j^2}
 - `t`: time, float or array of float
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
-ensemble_FID(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
-ensemble_FID(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->ensemble_FID(x,D),t);
+fid(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
+fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
 
 @doc raw"""
-    beta_sampling(D)
+    betasampling(D)
 
 Give a random sampling of beta, which is a combination of `D_j`,
 ```math
@@ -161,11 +139,11 @@ Give a random sampling of beta, which is a combination of `D_j`,
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
-beta_sampling(D::Vector{<:Real})=sum(rand([1,-1],length(D)).*D) 
+betasampling(D::Vector{<:Real})=sum(rand([1,-1],length(D)).*D) 
 
 
 """
-    f_sampling(t, D, h; [N])
+    fidsampling(t, D, h; [N])
 
 Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
  
@@ -175,7 +153,7 @@ Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
 """
-function f_sampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
+function fidsampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
@@ -190,7 +168,7 @@ function f_sampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int
     return f_sum/N,f_var/(N-1)
 end
 
-function f_sampling(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
+function fidsampling(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
     n=length(D)
     f_sum=0.0; f_var=0.0 # sum / square sum
     for i in 1:N
@@ -205,7 +183,7 @@ function f_sampling(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
 end
 
 """
-    t_adaptive(D, N; len=500, n_sigma=2)
+    decaytime(D, N; len=500, n_sigma=2)
 
 Given a set of coupling strength, determine the average `beta` by sampling.
 The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
@@ -217,26 +195,26 @@ adding a standard deviation to `beta` given by `n_sigma`
 - `len`: size of the generated time array 
 - `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
 """
-function t_adaptive(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
-    sample=abs.([beta_sampling(D) for i in 1:M])
+function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
+    sample=abs.([betasampling(D) for i in 1:M])
     omega_m,omega_std=mean(sample),std(sample)
     T=2pi/(omega_m+n_sigma*omega_std)
     return collect(0:T/len:T)
 end
 
 """
-    ensemble_average_FID(t, n_D, sampling_D)
+    averagefid(t, n_D, sampling_D)
 
 # Arguments
 - `t`: the time array for the decay curve.
 - `n_D::Integer`: the number of samplings on D set.
 - `sampling_D::function`: the function to sample over D
 """
-function ensemble_average_FID(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
+function averagefid(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:n_D
-        f_d=ensemble_FID(t, sampling_D())
+        f_d=fid(t, sampling_D())
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end

@@ -14,7 +14,7 @@ a matrix of size (N,d) N random location vectors distributed in a d-dimensional 
 rand_locs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
 
 """
-    rand_locs_cubic(a, b; N=1, dim=3)
+    randlocscubic(a, b; N=1, dim=3)
 
 Generate `N`` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)``
 
@@ -24,7 +24,7 @@ Generate `N`` random location vectors distributed in a 3D cube, scaled by a at r
 - `N`: numer of locations, in `[1,2,3]`
 - `dim`: dimension of the space
 """
-function rand_locs_cubic(a::Real, b::Real; N=1::Int, dim=3)
+function randlocscubic(a::Real, b::Real; N=1::Int, dim=3)
     @assert N<=3
 
     M=zeros(N,3)
@@ -41,7 +41,7 @@ end
 
 
 """
-    rand_locs_spherical(r_min, r_max; N)
+    randlocsspherical(r_min, r_max; N)
 
 Generate `N` random location vectors distributed in a 3D sphere
 
@@ -50,7 +50,7 @@ Generate `N` random location vectors distributed in a 3D sphere
 - `r_max`: upper bound of sampling radius
 - `N`: numer of locations 
 """
-function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
+function randlocsspherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
     M=zeros(N,3)
     r=cbrt.(rand(N).*(r_max^3-r_min^3).+r_min^3)
     ϕ=rand(N).*2pi
@@ -64,7 +64,7 @@ function rand_locs_spherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
 end
 
 """
-rand_locs_spherical(r_min, r_max; N)
+randlocsspherical(r_min, r_max; N)
 
 Generate `N` random location vectors distributed in a 2D plate
 
@@ -75,7 +75,7 @@ Generate `N` random location vectors distributed in a 2D plate
 Return:
     a matrix of size (N,3), N random location vectors distributed in a 3D sphere
 """
-function rand_locs_polar(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
+function randlocspolar(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
     M=zeros(N,3)
     r=sqrt.(rand(N).*(r_max^2-r_min^2).+r_min^2)
     ϕ=rand(N).*2pi

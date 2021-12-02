@@ -12,7 +12,7 @@ FID_plot_options=:xformatter=>:scientific,
 :xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>:false
 
 """
-    visual_ensemble(spin_locs)
+    visualensemble(spin_locs)
 
 Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJS
 
@@ -20,7 +20,7 @@ Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJ
 - `spin_locs::Matrix{N,3}`: collections of vectors for `N` spins, in 3 dimension
 """
 
-function visual_ensemble(spin_locs::Matrix{Float64}; interactive=:true)
+function visualensemble(spin_locs::Matrix{Float64}; interactive=:true)
     if interactive
         plotlyjs()
     end
@@ -37,7 +37,7 @@ function visual_ensemble(spin_locs::Matrix{Float64}; interactive=:true)
 end
 
 """
-    visual_FID(t, FID_curve; options...)
+    visualfid(t, FID_curve; options...)
 
 Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJS
 
@@ -51,7 +51,7 @@ Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJ
 - `s=2`: exponential power of the fitting model 
 - `logscale=:false`: display the plot in logscale, set to `false` by default 
 """
-function visual_FID(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real}; 
+function visualfid(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real}; 
     fitting=:false,
     cutoff=1::Int,
     s=2::Real,
@@ -85,7 +85,7 @@ end
 
 
 """
-    visual_coupling(sample; options...)
+    visualcoupling(sample; options...)
 
 Visualize an array of coupling strengths using histogram
 
@@ -96,7 +96,7 @@ Visualize an array of coupling strengths using histogram
 - `bin_set`: bins in the histogram
 - `logscale`: whether to display the histogram in logscale
 """
-function visual_coupling(sample::AbstractArray{Float64}; 
+function visualcoupling(sample::AbstractArray{Float64}; 
     bin_set=:none, logscale=:false)
     
     if bin_set==:none
@@ -118,7 +118,7 @@ end;
 
 
 """
-    visual_effective_beta(sample; options...)
+    visualeffectivebeta(sample; options...)
 
 Visualize an array of effective magnetic field 
 
@@ -130,7 +130,7 @@ Visualize an array of effective magnetic field
 - `use_abs`: whether to use the absolute value of `sample` in the histogram
 - `fitting`: fit the distribution with Gaussian distribution
 """
-function visual_effective_beta(sample::AbstractArray{Float64};
+function visualeffectivebeta(sample::AbstractArray{Float64};
     bin_num=50, use_abs=:false, fitting=:true)
     
     if use_abs 
