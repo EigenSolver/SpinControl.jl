@@ -10,9 +10,8 @@ using LinearAlgebra
 using Statistics
 import ProgressMeter: @showprogress
 
-export dipolarcoef, dipolarcoefs, randomcoefs,
-       fidsampling, betasampling, decaytime, 
-       fid, averagefid,
+export dipolarcoef, dipolarcoefs, dipolarlinewidth, randomcoefs,
+       fid, averagefid, fidsampling, betasampling, decaytime, 
        visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
 
@@ -107,6 +106,7 @@ Get the linewidth of D, which follows Gaussian distribution.
 ```math
 b=\sqrt{\sum_j D_j^2}
 ```
+
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
@@ -203,22 +203,22 @@ function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
 end
 
 """
-    averagefid(t, n_D, sampling_D)
+    averagefid(t, n_ensemble, sampling_D)
 
 # Arguments
 - `t`: the time array for the decay curve.
-- `n_D::Integer`: the number of samplings on D set.
+- `n_ensemble::Integer`: the number of samplings on D set.
 - `sampling_D::function`: the function to sample over D
 """
-function averagefid(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
+function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
-    @showprogress for i in 1:n_D
+    @showprogress for i in 1:n_ensemble
         f_d=fid(t, sampling_D())
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end
-    return f_sum/n_D, f_var/(n_D-1)
+    return f_sum/n_ensemble, f_var/(n_ensemble-1)
 end
 
 end

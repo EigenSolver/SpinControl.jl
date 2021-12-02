@@ -1,8 +1,6 @@
-# SpinEnsembles.jl Documentation
-
+# SpinEnsembles.jl 
 
 ## Functions
-
 
 ```@docs
 dipolarcoef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
@@ -10,6 +8,10 @@ dipolarcoef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
 
 ```@docs
 dipolarcoefs(locs::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
+```
+
+```@docs
+dipolarlinewidth(D::Vector{<:Real})
 ```
 
 ```@docs
@@ -24,8 +26,14 @@ fid(t::Real,D::Vector{<:Real})
 averagefid(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
 ```
 
-
 ```@docs
 betasampling(D_set::Vector{<:Real})
 ```
 
+```@docs
+fidsampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
+```
+
+```@docs
+decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
+```

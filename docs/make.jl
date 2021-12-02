@@ -1,7 +1,7 @@
 using Documenter, SpinEnsembles
 
 makedocs(
-    sitename = "SpinEnsembles.jl",
+    sitename = "SpinEnsembles",
     authors = "Yuning Zhang",
     pages = [
         "Home" => "index.md",
