@@ -25,7 +25,7 @@ function visualensemble(spin_locs::Matrix{Float64}; interactive=:true)
         plotlyjs()
     end
 
-    scatter(spin_locs[:,1],spin_locs[:,2],spin_locs[:,3],
+    fig=scatter(spin_locs[:,1],spin_locs[:,2],spin_locs[:,3],
     xlabel="x",
     ylabel="y",
     zlabel="z",
@@ -33,7 +33,8 @@ function visualensemble(spin_locs::Matrix{Float64}; interactive=:true)
     title="Ensemble Visualization",
     framestyle=:box)
     
-    gr()
+    display(fig);
+    gr();
 end
 
 """

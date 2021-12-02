@@ -1,4 +1,4 @@
-# SpinEnsembles.jl 
+# SpinEnsembles.jl
 
 ## Functions
 
