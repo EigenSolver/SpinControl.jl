@@ -25,7 +25,7 @@ Generate `N`` random location vectors distributed in a 3D cube, scaled by a at r
 - `dim`: dimension of the space
 """
 function randlocscubic(a::Real, b::Real; N=1::Int, dim=3)
-    @assert N<=3
+    @assert dim<=3
 
     M=zeros(N,3)
     rand!(@view(M[:,1:dim]),[1,-1])

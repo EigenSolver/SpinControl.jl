@@ -1,7 +1,7 @@
 name = "SpinEnsembles"
 uuid = "b4cd1eb8-1e24-11e8-3319-93036a3eb9f3"
 authors = ["Yuning Zhang <neuromancer43@gmail.com>"]
-version = "0.0.2"
+version = "0.0.3"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
