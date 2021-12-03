@@ -9,6 +9,9 @@ Analysis on the dynamics of a disordered spin ensemble.
 - Driving by external magnetic fields
 
 *Todo list*
-- [ ] Write documentation 
+- [ ] Better documentation
+- [X] Implement Rabi Oscillation
+- [X] Rename functions
+- [X] Write documentation 
 - [X] Precompile the package and use it in the notebooks
 - [X] Update dependencies

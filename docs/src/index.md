@@ -3,7 +3,7 @@
 ## Functions
 
 ```@docs
-dipolarcoef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
+dipolarcoef(r::AbstractVector{<:Real},z0::AbstractVector{<:Real})
 ```
 
 ```@docs
