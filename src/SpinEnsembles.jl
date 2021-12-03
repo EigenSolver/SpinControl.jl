@@ -38,7 +38,7 @@ julia> dipolarcoef(v0,z0)
 -0.08838834764831834
 ```    
 """
-function dipolarcoef(r::AbstractArray{<:Real},z0::AbstractArray{<:Real})
+function dipolarcoef(r::Vector{<:Real},z0::AbstractArray{<:Real})
     # suppose z0 is already normalized
     cosθ=dot(r,z0)/norm(r) #calculate the cos(θ) between the vector and the z axis
     D=0.5*(1-3cosθ^2)/norm(r)^3
@@ -98,20 +98,6 @@ function randomcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     dipolarcoefs(M)
 end
 
-
-@doc raw"""
-    dipolarlinewidth(D)
-
-Get the linewidth of D, which follows Gaussian distribution. 
-```math
-b=\sqrt{\sum_j D_j^2}
-```
-
-# Arguments
-- `D`: coupling strength of dipolar interactions, a array of floats
-"""
-dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
-
 @doc raw"""
     fid(t, D)
 
@@ -119,7 +105,7 @@ Given a set of dipolar coupling constant,
 calculate et the free induction decay (FID) value at given time `t`, or the FID decay curve for a time array `t`
 
 ```math
-b=\sqrt{\sum_j D_j^2}
+f(t)=\frac{1}{2}\prod_j \cos(D_jt)
 ```
 # Arguments
 - `t`: time, float or array of float
@@ -141,12 +127,28 @@ Give a random sampling of beta, which is a combination of `D_j`,
 """
 betasampling(D::Vector{<:Real})=sum(rand([1,-1],length(D)).*D) 
 
+@doc raw"""
+    dipolarlinewidth(D)
 
+Get the linewidth of D, which follows Gaussian distribution. 
+
+```math
+b=\sqrt{\sum_j D_j^2}
+```
+# Arguments
+- `D`: coupling strength of dipolar interactions, a array of floats
 """
+dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
+
+@doc raw"""
     fidsampling(t, D, h; [N])
 
 Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
- 
+
+```math
+f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
+```
+
 # Arguments
 - `t`: discrete array marking time 
 - `D`: a set of the coupling strengths
@@ -202,15 +204,21 @@ function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
     return collect(0:T/len:T)
 end
 
-"""
-    averagefid(t, n_ensemble, sampling_D)
+@doc raw"""
+    averagefid(t, n_ensemble, sampling_D; [options]...)
+
+Calculate the average free induction decay over different ensembles (disorders) 
+
+```math
+\bar{f}(t)=\sum_k f(t; \{D_i\}_k)
+```
 
 # Arguments
 - `t`: the time array for the decay curve.
 - `n_ensemble::Integer`: the number of samplings on D set.
 - `sampling_D::function`: the function to sample over D
 """
-function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D)
+function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D; h=0)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:n_ensemble
