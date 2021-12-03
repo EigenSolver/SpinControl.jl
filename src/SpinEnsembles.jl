@@ -25,8 +25,8 @@ include("Visualization.jl")
 Calculate the dipolar interaction strength given by vector `r` and default field at `z0`
 
 # Arguments
-- `r::AbstractArray{<:Real}`: point vectors from one loc to another    
-- `z0::AbstractArray{<:Real}`: direction of the background magnetic field
+- `r`: point vectors from one loc to another    
+- `z0`: direction of the background magnetic field
 
 # Examples
 ```jldoctest
@@ -38,24 +38,24 @@ julia> dipolarcoef(v0,z0)
 -0.08838834764831834
 ```    
 """
-function dipolarcoef(r::Vector{<:Real},z0::AbstractArray{<:Real})
+function dipolarcoef(r::AbstractVector{<:Real},z0::AbstractVector{<:Real})
     # suppose z0 is already normalized
     cosθ=dot(r,z0)/norm(r) #calculate the cos(θ) between the vector and the z axis
     D=0.5*(1-3cosθ^2)/norm(r)^3
     return D
-end;
+end
 
 
 """
-    dipolarcoefs(bath, z0)
+    dipolarcoefs(locs, z0)
 
 Get a list of dipolar coupling strength between the centered spin and bath
 
 # Arguments
-- `locs::Matrix{<:Real}`: an array of vector, distance from the central spin to the spins in bath 
-- `z0::Vector{<:Real}`: the direction of external field, set to z axis by default
+- `locs`: an array of vector, distance from the central spin to the spins in bath 
+- `z0`: the direction of external field, set to z axis by default
 """
-function dipolarcoefs(locs::Matrix{<:Real},z0=[0,0,1.0]::Vector{<:Real})
+function dipolarcoefs(locs::Matrix{<:Real},z0=[0,0,1.0]::AbstractVector{<:Real})
     normalize!(z0)
     map(x->dipolarcoef(x,z0), eachrow(locs))
 end
