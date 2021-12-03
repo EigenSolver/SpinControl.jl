@@ -10,9 +10,13 @@ using LinearAlgebra
 using Statistics
 import ProgressMeter: @showprogress
 
+# functions
 export dipolarcoef, dipolarcoefs, dipolarlinewidth, randomcoefs,
        fid, averagefid, fidsampling, betasampling, decaytime, 
        visualcoupling, visualeffectivebeta, visualensemble, visualfid
+
+# constant
+export fid_plot_options
 
 
 include("RandLoctions.jl")

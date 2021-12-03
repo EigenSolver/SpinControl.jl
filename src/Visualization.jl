@@ -4,11 +4,11 @@ import LsqFit: curve_fit
 import Distributions: Normal, loglikelihood, fit, pdf, params
 
 """
-    plot(...; FID_plot_options...)
+    plot(...; fid_plot_options...)
 
 Options used to plot a FID line
 """
-FID_plot_options=:xformatter=>:scientific,
+fid_plot_options=:xformatter=>:scientific,
 :xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>:false
 
 """
@@ -61,7 +61,7 @@ function visualfid(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real};
 
     f= logscale ? log.(FID_curve) : FID_curve
 
-    fig = scatter(t,f;FID_plot_options..., labels="simulation",
+    fig = scatter(t,f;fid_plot_options..., labels="simulation",
     markershape = :vline,
     markersize = 6,
     markeralpha = 0.9,
