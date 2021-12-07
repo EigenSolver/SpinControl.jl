@@ -12,7 +12,7 @@ import ProgressMeter: @showprogress
 
 # functions
 export dipolarcoef, dipolarcoefs, dipolarlinewidth, randomcoefs,
-       fid, averagefid, fidsampling, betasampling, decaytime, 
+       fid, averagefid, fid, betasampling, decaytime, 
        visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
 # constant
@@ -103,22 +103,6 @@ function randomcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
 end
 
 @doc raw"""
-    fid(t, D)
-
-Given a set of dipolar coupling constant, 
-calculate et the free induction decay (FID) value at given time `t`, or the FID decay curve for a time array `t`
-
-```math
-f(t)=\frac{1}{2}\prod_j \cos(D_jt)
-```
-# Arguments
-- `t`: time, float or array of float
-- `D`: coupling strength of dipolar interactions, a array of floats
-"""
-fid(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
-fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
-
-@doc raw"""
     betasampling(D)
 
 Give a random sampling of beta, which is a combination of `D_j`,
@@ -145,7 +129,23 @@ b=\sqrt{\sum_j D_j^2}
 dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
 
 @doc raw"""
-    fidsampling(t, D, h; [N])
+    fid(t, D)
+
+Given a set of dipolar coupling constant, 
+calculate et the free induction decay (FID) value at given time `t`, or the FID decay curve for a time array `t`
+
+```math
+f(t)=\frac{1}{2}\prod_j \cos(D_jt)
+```
+# Arguments
+- `t`: time, float or array of float
+- `D`: coupling strength of dipolar interactions, a array of floats
+"""
+fid(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
+fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
+
+@doc raw"""
+    fid(t, D, h; [N])
 
 Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
 
@@ -159,7 +159,27 @@ f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
 """
-function fidsampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
+function fid(t::Real,D::Vector{<:Real},h::Real; N=100::Int)
+    if h==0
+        return fid(t,D)
+    end
+    n=length(D)
+    f_sum=0.0; f_var=0.0 # sum / square sum
+    for i in 1:N
+        beta_p=sum(rand([1,-1],n).*D)
+        omega_p=sqrt(h^2+beta_p^2)/2
+        cos_p=cos(omega_p*t)^2
+        f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        f_sum+=f_p
+        f_var+= i>1 ? (i*f_p-f_sum)^2/(i*(i-1)) : f_var
+    end
+    return f_sum/N,f_var/(N-1)
+end
+
+function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int)
+    if h==0
+        return fid(t,D)
+    end
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
@@ -174,27 +194,13 @@ function fidsampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::In
     return f_sum/N,f_var/(N-1)
 end
 
-function fidsampling(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
-    n=length(D)
-    f_sum=0.0; f_var=0.0 # sum / square sum
-    for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D) 
-        omega_p=sqrt(h^2+beta_p^2)/2
-        cos_p=cos(omega_p*t)^2
-        f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
-        f_sum+=f_p
-        f_var+= i>1 ? (i*f_p-f_sum)^2/(i*(i-1)) : f_var
-    end
-    return f_sum/N,f_var/(N-1)
-end
-
 """
-    decaytime(D, N; len=500, n_sigma=2)
+    decaytime(D, M; len=500, n_sigma=2)
 
 Given a set of coupling strength, determine the average `beta` by sampling.
 The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
 adding a standard deviation to `beta` given by `n_sigma`
- 
+
 # Arguments
 - `D::Vector{Real}`: a set of coupling strengths
 - `M`: sampling size

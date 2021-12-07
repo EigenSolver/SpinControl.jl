@@ -31,7 +31,7 @@ betasampling(D_set::Vector{<:Real})
 ```
 
 ```@docs
-fidsampling(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
+fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
 ```
 
 ```@docs
