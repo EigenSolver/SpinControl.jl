@@ -90,7 +90,7 @@ end
 
 """
     randcoefs(N, dim, a)
-    randcoefs(N, dim, bound, [method])
+    randcoefs(N, dim, bound; method)
 
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
 totally `N` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
@@ -168,7 +168,7 @@ fid(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
 fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
 
 @doc raw"""
-    fid(t, D, h; [N])
+    fid(t, D, h; N)
 
 Simulate FID signal with given transverse magnetic field `h`, using Monte-Carlo sampling
 
@@ -251,12 +251,20 @@ function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
 end
 
 @doc raw"""
-    fid(t, D, h; [N])
+    rabi(t, D, h; N, options...)
 
-Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
+Get a random sampling of, under given transverse magnetic field
 
 ```math
-f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
+\begin{aligned}
+z_p(t)&=+\frac{1}{2} \left[n_z^2+n_x^2 \cos (\Omega_p t)\right]\\
+y_p(t)&=-\frac{1}{2} n_x \sin (\Omega_p t)\\
+x_p(t)&=+\frac{1}{2} \left[n_x n_z-n_x n_z \cos (\Omega_p t)\right]
+\end{aligned}
+```
+
+```math
+G(t)=\frac{1}{N}\sum_{p=1}^N g_p(t),\; g=x,y,z
 ```
 
 # Arguments
@@ -264,8 +272,13 @@ f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
+
+# Options
+- `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
+- `returnerr::Bool`: wether to return the variance in sampling
 """
-function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int, axis=3::Int; returnerr=:false)
+function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int, axis=3::Int, returnerr=:false)
+    @assert axis in (1,2,3)
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
