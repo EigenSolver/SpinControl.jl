@@ -282,11 +282,12 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int,
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
-    f_p=(_fx,_fy,_fz)[axis]
+    f_sampling=(_fx,_fy,_fz)[axis]
 
     for i in 1:N
         beta_p=sum(rand([1,-1],n).*D) 
-        f_sum+=f_p(t,beta_p,h)
+        f_p=f_sampling(t,beta_p,h)
+        f_sum+=f_p
         f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
     end
     if returnerr

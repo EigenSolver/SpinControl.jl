@@ -3,6 +3,9 @@ using Test
 using SpinEnsembles
 import LinearAlgebra: norm
 
+include("../src/RandLoctions.jl")
+include("../src/Visualization.jl")
+
 ##
 M=randlocsspherical(1,10,N=1000)
 
