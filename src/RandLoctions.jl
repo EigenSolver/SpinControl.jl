@@ -1,7 +1,7 @@
 using Random
 
 """
-    rand_locs(N, dim, a)
+    randlocs(N, dim, a)
 
 General method to generate a set of n dimensional locations array. 
 a matrix of size (N,d) N random location vectors distributed in a d-dimensional cube, scaled by a at range (-a,a)
@@ -11,7 +11,7 @@ a matrix of size (N,d) N random location vectors distributed in a d-dimensional 
 - `dim`: dimension 
 - `a`: scaling factor
 """
-rand_locs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
+randlocs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
 
 """
     randlocscubic(a, b; N=1, dim=3)

@@ -15,11 +15,15 @@ dipolarlinewidth(D::Vector{<:Real})
 ```
 
 ```@docs
-randomcoefs(N::Int,dim::Int,a=1::Real)
+randcoefs(N::Int,dim::Int,a=1::Real)
 ```
 
 ```@docs
 fid(t::Real,D::Vector{<:Real})
+```
+
+```@docs
+fid(t::Real,D::Vector{<:Real},h::Real;N=1::Int)
 ```
 
 ```@docs
@@ -28,10 +32,6 @@ averagefid(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
 
 ```@docs
 betasampling(D_set::Vector{<:Real})
-```
-
-```@docs
-fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real;N=1::Int)
 ```
 
 ```@docs

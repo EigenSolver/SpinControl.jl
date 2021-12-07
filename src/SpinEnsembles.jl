@@ -11,7 +11,7 @@ using Statistics
 import ProgressMeter: @showprogress
 
 # functions
-export dipolarcoef, dipolarcoefs, dipolarlinewidth, randomcoefs,
+export dipolarcoef, dipolarcoefs, dipolarlinewidth, randcoefs,
        fid, averagefid, fid, betasampling, decaytime, 
        visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
@@ -22,6 +22,29 @@ export fid_plot_options
 include("RandLoctions.jl")
 include("Visualization.jl")
 
+
+"""
+    SpinEnsemble
+ 
+"""
+struct SpinEnsemble
+    N::Int  
+    dim::Int 
+    h::Real
+    z0::AbstractVector{<:Real}
+    
+    r::Real
+    R::Real
+    a:: Real
+    rho::Real
+    # f::Real
+
+    locs::AbstractMatrix{<:Real}
+    D::AbstractVector{<:Real}
+
+    # islatticed::Bool
+    # isdilute::Bool
+end
 
 """
     dipolarcoef(r, z0)
@@ -66,8 +89,8 @@ end
 
 
 """
-    randomcoefs(N, dim, a)
-    randomcoefs(N, dim, bound, [method])
+    randcoefs(N, dim, a)
+    randcoefs(N, dim, bound, [method])
 
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
 totally `N` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
@@ -79,9 +102,9 @@ totally `N` spins are uniformly distributed in a `dim` dimensional cubic space w
 - `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
-randomcoefs(N::Int,dim::Int,a=1::Real)=dipolarcoefs(rand_locs(N,dim,a))
+randcoefs(N::Int,dim::Int,a=1::Real)=dipolarcoefs(randlocs(N,dim,a))
 
-function randomcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
+function randcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     @assert dim>0 && dim<4
     @assert method in (:spherical, :cubic)
     a,b=bound
@@ -194,25 +217,6 @@ function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int)
     return f_sum/N,f_var/(N-1)
 end
 
-"""
-    decaytime(D, M; len=500, n_sigma=2)
-
-Given a set of coupling strength, determine the average `beta` by sampling.
-The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
-adding a standard deviation to `beta` given by `n_sigma`
-
-# Arguments
-- `D::Vector{Real}`: a set of coupling strengths
-- `M`: sampling size
-- `len`: size of the generated time array 
-- `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
-"""
-function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
-    sample=abs.([betasampling(D) for i in 1:M])
-    omega_m,omega_std=mean(sample),std(sample)
-    T=2pi/(omega_m+n_sigma*omega_std)
-    return collect(0:T/len:T)
-end
 
 @doc raw"""
     averagefid(t, n_ensemble, sampling_D; [options]...)
@@ -237,6 +241,45 @@ function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D; h=0)
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end
     return f_sum/n_ensemble, f_var/(n_ensemble-1)
+end
+
+"""
+    decaytime(D, M; len=500, n_sigma=2)
+
+Given a set of coupling strength, determine the average `beta` by sampling.
+The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
+adding a standard deviation to `beta` given by `n_sigma`
+
+# Arguments
+- `D::Vector{Real}`: a set of coupling strengths
+- `M`: sampling size
+- `len`: size of the generated time array 
+- `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
+"""
+function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
+    sample=abs.([betasampling(D) for i in 1:M])
+    omega_m,omega_std=mean(sample),std(sample)
+    T=2pi/(omega_m+n_sigma*omega_std)
+    return collect(0:T/len:T)
+end
+
+@doc raw"""
+    fid(t, D, h; [N])
+
+Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
+
+```math
+f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
+```
+
+# Arguments
+- `t`: discrete array marking time 
+- `D`: a set of the coupling strengths
+- `h`: strength of transverse field 
+- `N`: size of Monte-Carlo sampling
+"""
+function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int)
+    t
 end
 
 end
