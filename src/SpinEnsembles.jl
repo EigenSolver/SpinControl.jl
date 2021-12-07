@@ -12,7 +12,7 @@ import ProgressMeter: @showprogress
 
 # functions
 export dipolarcoef, dipolarcoefs, dipolarlinewidth, randcoefs,
-       fid, averagefid, fid, betasampling, decaytime, 
+       fid, averagefid, betasampling, decaytime, rabi
        visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
 # constant
