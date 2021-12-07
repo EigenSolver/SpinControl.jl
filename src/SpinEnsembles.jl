@@ -170,51 +170,38 @@ fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
 @doc raw"""
     fid(t, D, h; [N])
 
-Get a random sampling of the `f=S_x(t)`, under given transverse magnetic field
+Simulate FID signal with given transverse magnetic field `h`, using Monte-Carlo sampling
 
 ```math
 f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 ```
 
+```math
+\bar{f}(t)=\frac{1}{M}\sum_{p=1}^M f_p(t)
+```
 # Arguments
 - `t`: discrete array marking time 
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
 """
-function fid(t::Real,D::Vector{<:Real},h::Real; N=100::Int)
-    if h==0
-        return fid(t,D)
-    end
-    n=length(D)
-    f_sum=0.0; f_var=0.0 # sum / square sum
-    for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D)
-        omega_p=sqrt(h^2+beta_p^2)/2
-        cos_p=cos(omega_p*t)^2
-        f_p=(cos_p+(cos_p-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
-        f_sum+=f_p
-        f_var+= i>1 ? (i*f_p-f_sum)^2/(i*(i-1)) : f_var
-    end
-    return f_sum/N,f_var/(N-1)
-end
-
-function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int)
-    if h==0
-        return fid(t,D)
-    end
+function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:false)
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
     for i in 1:N
         beta_p=sum(rand([1,-1],n).*D) 
         omega_p=sqrt(h^2+beta_p^2)/2
-        cos_p=cos.(omega_p*t).^2
-        f_p=(cos_p+(cos_p.-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        cos2_p=cos.(omega_p*t).^2
+        f_p=(cos2_p+(cos2_p.-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
         f_sum+=f_p
         f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
     end
-    return f_sum/N,f_var/(N-1)
+    if geterr
+        return (f_sum/N,f_var/(N-1))
+    else
+        return f_sum/N
+    end
 end
 
 
@@ -278,8 +265,39 @@ f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
 """
-function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int)
-    t
+function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int, axis=3::Int; returnerr=:false)
+    n=length(D)
+    f_sum=zeros(length(t)) # sum
+    f_var=copy(f_sum) # square sum
+    f_p=(_fx,_fy,_fz)[axis]
+
+    for i in 1:N
+        beta_p=sum(rand([1,-1],n).*D) 
+        f_sum+=f_p(t,beta_p,h)
+        f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
+    end
+    if returnerr
+        return (f_sum/N,f_var/(N-1))
+    else
+        return f_sum/N
+    end
+end
+
+function _fz(t,beta,h)
+    omega=sqrt(h^2+beta^2)/2
+    cos2=cos.(omega*t).^2
+    return (cos2-(cos2.-1)*(beta^2-h^2)/(h^2+beta^2))/2
+end
+
+function _fy(t,beta,h)
+    Omega=sqrt(h^2+beta^2)
+    return -sin.(Omega*t)/2*h/Omega
+end
+
+function _fx(t,beta,h)
+    omega=sqrt(h^2+beta^2)/2
+    sin2=sin.(omega*t).^2
+    return sin2*(beta*h)/(h^2+beta^2)
 end
 
 end
