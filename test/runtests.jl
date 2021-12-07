@@ -1,10 +1,7 @@
 ##
 using Test
+using SpinEnsembles
 import LinearAlgebra: norm
-
-include("../src/RandLoctions.jl")
-include("../src/Visualization.jl")
-using SpinEnsembles: randcoefs, dipolarcoefs
 
 ##
 M=randlocsspherical(1,10,N=1000)
@@ -36,3 +33,9 @@ M=randlocs(1000,10,4)
 @test size(M)==(1000,10)
 @test typeof(M)<:Matrix{Float64}
 @test maximum(M)<4
+
+## Test FID function
+D=randcoefs(2000,3,10)
+t=0:0.01:20
+h=0.5
+rabi(t,D,h)

@@ -296,18 +296,18 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int,
     end
 end
 
-function _fz(t,beta,h)
+function _fz(t::AbstractVector{<:Real},beta::Real,h::Real)
     omega=sqrt(h^2+beta^2)/2
     cos2=cos.(omega*t).^2
     return (cos2-(cos2.-1)*(beta^2-h^2)/(h^2+beta^2))/2
 end
 
-function _fy(t,beta,h)
+function _fy(t::AbstractVector{<:Real},beta::Real,h::Real)
     Omega=sqrt(h^2+beta^2)
     return -sin.(Omega*t)/2*h/Omega
 end
 
-function _fx(t,beta,h)
+function _fx(t::AbstractVector{<:Real},beta::Real,h::Real)
     omega=sqrt(h^2+beta^2)/2
     sin2=sin.(omega*t).^2
     return sin2*(beta*h)/(h^2+beta^2)
