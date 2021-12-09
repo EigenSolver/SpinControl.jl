@@ -41,4 +41,5 @@ M=randlocs(1000,10,4)
 D=randcoefs(2000,3,10)
 t=0:0.01:20
 h=0.5
+fid(t,D,h)
 rabi(t,D,h)
