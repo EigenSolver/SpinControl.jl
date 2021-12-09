@@ -28,7 +28,7 @@ include("Visualization.jl")
  
 """
 struct SpinEnsemble
-    N::Int  
+    n::Int  
     dim::Int 
     h::Real
     z0::AbstractVector{<:Real}
@@ -89,22 +89,22 @@ end
 
 
 """
-    randcoefs(N, dim, a)
-    randcoefs(N, dim, bound; method)
+    randcoefs(n, dim, a)
+    randcoefs(n, dim, bound; method)
 
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
-totally `N` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
+totally `n` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
 
 # Arguments
-- `N`: number of spin in bath 
+- `n`: number of spins in ensemble
 - `dim`: dimension
 - `a`: scale of ensemble
 - `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
-randcoefs(N::Int,dim::Int,a=1::Real)=dipolarcoefs(randlocs(N,dim,a))
+randcoefs(n::Int,dim::Int,a=1::Real)=dipolarcoefs(randlocs(n,dim,a))
 
-function randcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
+function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     @assert dim>0 && dim<4
     @assert method in (:spherical, :cubic)
     a,b=bound
@@ -112,17 +112,17 @@ function randcoefs(N::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
 
     
     if method==:cubic
-        M=randlocscubic(a,b, N=N, dim=dim)
+        locs=randlocscubic(a,b, N=n, dim=dim)
     else
         if dim==3
-            M=randlocsspherical(a,b,N=N)
+            locs=randlocsspherical(a,b,N=n)
         elseif dim==2
-            M=randlocspolar(a,b,N=N)
+            locs=randlocspolar(a,b,N=n)
         else
-            M=randlocscubic(a,b,N=N,dim=1)
+            locs=randlocscubic(a,b,N=n,dim=1)
         end
     end
-    dipolarcoefs(M)
+    dipolarcoefs(locs)
 end
 
 @doc raw"""
@@ -184,16 +184,19 @@ f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
 - `N`: size of Monte-Carlo sampling
+
+# Options
+- `geterr::Bool`: wetehr to return the error of the monte-sampling 
 """
 function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:false)
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
     for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D) 
-        omega_p=sqrt(h^2+beta_p^2)/2
-        cos2_p=cos.(omega_p*t).^2
-        f_p=(cos2_p+(cos2_p.-1)*(beta_p^2-h^2)/(h^2+beta_p^2))/2
+        β_p=sum(rand([1,-1],n).*D) 
+        ω_p=sqrt(h^2+β_p^2)/2
+        cos2_p=cos.(ω_p*t).^2
+        f_p=(cos2_p+(cos2_p.-1)*(β_p^2-h^2)/(h^2+β_p^2))/2
         f_sum+=f_p
         f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
     end
@@ -219,7 +222,7 @@ Calculate the average free induction decay over different ensembles (disorders)
 - `n_ensemble::Integer`: the number of samplings on D set.
 - `sampling_D::function`: the function to sample over D
 """
-function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D; h=0)
+function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:n_ensemble
@@ -243,7 +246,7 @@ adding a standard deviation to `beta` given by `n_sigma`
 - `len`: size of the generated time array 
 - `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
 """
-function decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
+function decaytime(D::Vector{<:Real},M::Int=500; len=500::Int, n_sigma=2::Real)
     sample=abs.([betasampling(D) for i in 1:M])
     omega_m,omega_std=mean(sample),std(sample)
     T=2pi/(omega_m+n_sigma*omega_std)
@@ -271,7 +274,7 @@ G(t)=\frac{1}{N}\sum_{p=1}^N g_p(t),\; g=x,y,z
 - `t`: discrete array marking time 
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
-- `N`: size of Monte-Carlo sampling
+- `N`: size of Monte-Carlo sampling, default at 100
 
 # Options
 - `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
@@ -282,11 +285,11 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int,
     n=length(D)
     f_sum=zeros(length(t)) # sum
     f_var=copy(f_sum) # square sum
-    f_sampling=(_fx,_fy,_fz)[axis]
+    f_sampling=(_rabix,_rabiy,_rabiz)[axis]
 
     for i in 1:N
-        beta_p=sum(rand([1,-1],n).*D) 
-        f_p=f_sampling(t,beta_p,h)
+        β_p=sum(rand([1,-1],n).*D) 
+        f_p=f_sampling(t,β_p,h)
         f_sum+=f_p
         f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
     end
@@ -297,21 +300,53 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int,
     end
 end
 
-function _fz(t::AbstractVector{<:Real},beta::Real,h::Real)
-    omega=sqrt(h^2+beta^2)/2
-    cos2=cos.(omega*t).^2
-    return (cos2-(cos2.-1)*(beta^2-h^2)/(h^2+beta^2))/2
+function _rabiz(t::AbstractVector{<:Real},β::Real,h::Real)
+    ω=sqrt(h^2+β^2)/2
+    cos2=cos.(ω*t).^2
+    return (cos2-(cos2.-1)*(β^2-h^2)/(h^2+β^2))/2
 end
 
-function _fy(t::AbstractVector{<:Real},beta::Real,h::Real)
-    Omega=sqrt(h^2+beta^2)
-    return -sin.(Omega*t)/2*h/Omega
+function _rabiy(t::AbstractVector{<:Real},β::Real,h::Real)
+    Ω=sqrt(h^2+β^2)
+    return -sin.(Ω*t)/2*h/Ω
 end
 
-function _fx(t::AbstractVector{<:Real},beta::Real,h::Real)
-    omega=sqrt(h^2+beta^2)/2
-    sin2=sin.(omega*t).^2
-    return sin2*(beta*h)/(h^2+beta^2)
+function _rabix(t::AbstractVector{<:Real},β::Real,h::Real)
+    ω=sqrt(h^2+β^2)/2
+    sin2=sin.(ω*t).^2
+    return sin2*(β*h)/(h^2+β^2)
+end
+
+
+@doc raw"""
+    rabi(t, h, b; [axis])
+
+Get analytical solution of Rabi oscillation under Gaussian noise with linewidth `b`
+
+```math
+M_z(t)=A \cos(h \,t+\varphi), \quad M_y(t)=-A \sin(h \,t+\varphi)
+```
+```math
+A=\frac{1}{2}\left(1+b^4t^2/h^2\right)^{1/4},\quad \varphi=\frac{1}{2}\arctan(b^2 t/h)
+```
+
+# Arguments
+- `t`: discrete array marking time 
+- `D`: a set of the coupling strengths
+- `h`: strength of transverse field 
+
+# Options
+- `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
+""" 
+function rabi(t::AbstractArray, h::Real, b::Real; axis=3)
+    @assert axis in (1,2,3)
+    A=(1.0.+b^4*t.^2/h^2).^(-1/4)/2
+    φ=atan.(b^2*t/h)/2
+    if axis==3
+        return A.*cos.(h*t+φ)
+    elseif axis==2
+        return -A.*sin.(h*t+φ)
+    end
 end
 
 end

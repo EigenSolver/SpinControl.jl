@@ -16,7 +16,7 @@ randlocs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
 """
     randlocscubic(a, b; N=1, dim=3)
 
-Generate `N`` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)``
+Generate `N` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)`
 
 # Arguments
 - `a`: lower bound of sampling range
