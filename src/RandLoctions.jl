@@ -13,7 +13,7 @@ Generate `n` random location vectors distributed in a 3D cube, scaled by a at ra
 # Options
 - `dim`: dimension of the space
 """
-function randcartesianlocs(n=1::Int, a::Real, b::Real; dim=3::Int)
+function randcartesianlocs(n::Int, a::Real, b::Real; dim=3::Int)
     @assert dim<=3
 
     M=zeros(n,3)
@@ -28,6 +28,13 @@ function randcartesianlocs(n=1::Int, a::Real, b::Real; dim=3::Int)
     M
 end
 
+function randcartesianlocs(n::Int, R::Real; dim=3::Int)
+    @assert dim<=3
+    M=zeros(n,3)
+    rand!(@view(M[:,1:dim]))
+    @view(M[:,1:dim]).-=1/2
+    return 2R*M
+end
 
 """
     randsphericallocs(n, r_min, r_max)
@@ -40,7 +47,7 @@ return a matrix of size (n,3), n random location vectors distributed in a 3D sph
 - `r_max`: upper bound of sampling radius
 - `n`: numer of locations 
 """
-function randsphericallocs(n=1::Int, r_min=0.0::Real, r_max=1.0::Real)
+function randsphericallocs(n::Int, r_min=0.0::Real, r_max=1.0::Real)
     M=zeros(n,3)
     r=cbrt.(rand(n).*(r_max^3-r_min^3).+r_min^3)
     ϕ=rand(n).*2pi
@@ -64,7 +71,7 @@ return a matrix of size (n,3), n random location vectors distributed in a 3D sph
 - `r_min`: lower bound of sampling radius
 - `r_max`: upper bound of sampling radius
 """
-function randpolarlocs(n=1::Int, r_min=0.0::Real, r_max=1.0::Real)
+function randpolarlocs(n::Int, r_min=0.0::Real, r_max=1.0::Real)
     M=zeros(n,3)
     r=sqrt.(rand(n).*(r_max^2-r_min^2).+r_min^2)
     ϕ=rand(n).*2pi

@@ -89,7 +89,7 @@ end
 
 
 """
-    randcoefs(n, dim, a)
+    randcoefs(n, dim, R)
     randcoefs(n, dim, bound; method)
 
 Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
@@ -98,17 +98,19 @@ totally `n` spins are uniformly distributed in a `dim` dimensional cubic space w
 # Arguments
 - `n`: number of spins in ensemble
 - `dim`: dimension
-- `a`: scale of ensemble
+- `R`: scale of ensemble
 - `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
+
+# Options
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
 function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     @assert dim>0 && dim<4
     @assert method in (:spherical, :cubic)
     a,b=bound
-    @assert a>0 && b>0 
+    @assert a>=0 && b>=0
+    a,b= a<b ? (a,b) : (b,a)
 
-    
     if method==:cubic
         locs=randcartesianlocs(n,a,b, dim=dim)
     else
@@ -123,8 +125,7 @@ function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     dipolarcoefs(locs)
 end
 
-randcoefs(n::Int,dim::Int,R=1::Real; method=:cubic)=
-randcoefs(n,dim,(0,R);method=method)
+randcoefs(n::Int,dim::Int,R=1::Real; method=:cubic)=randcoefs(n,dim,(0,R);method=method)
 
 @doc raw"""
     betasampling(D)
@@ -139,7 +140,10 @@ Give a random sampling of beta, which is a combination of `D_j`,
 # Options
 - `N`: size of Monte-Carlo sampling
 """
-betasampling(D::Vector{<:Real}; N=1::Int)=sum(rand([1,-1],length(D)).*D) 
+function betasampling(D::Vector{<:Real}; N=1::Int)
+    n=length(D)
+    return [sum(rand([1,-1],n).*D) for i in 1:N]
+end
 
 @doc raw"""
     dipolarlinewidth(D)
@@ -250,7 +254,7 @@ adding a standard deviation to `beta` given by `n_sigma`
 - `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
 """
 function decaytime(D::Vector{<:Real},N::Int=500; len=500::Int, n_sigma=2::Real)
-    sample=abs.([betasampling(D) for i in 1:N])
+    sample=abs.(betasampling(D;N=N))
     omega_m,omega_std=mean(sample),std(sample)
     T=2pi/(omega_m+n_sigma*omega_std)
     return collect(0:T/len:T)
