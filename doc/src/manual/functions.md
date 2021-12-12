@@ -1,6 +1,4 @@
-# SpinEnsembles.jl
-
-## Functions
+# Functions
 
 ```@docs
 dipolarcoef(r::AbstractVector{<:Real},z0::AbstractVector{<:Real})
@@ -15,7 +13,7 @@ dipolarlinewidth(D::Vector{<:Real})
 ```
 
 ```@docs
-randcoefs(N::Int,dim::Int,a=1::Real)
+randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
 ```
 
 ```@docs
@@ -27,7 +25,7 @@ fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:fal
 ```
 
 ```@docs
-averagefid(t::AbstractVector{<:Real}, n_D::Int, sampling_D)
+averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
 ```
 
 ```@docs
