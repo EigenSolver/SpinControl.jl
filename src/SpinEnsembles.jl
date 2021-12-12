@@ -46,10 +46,14 @@ struct SpinEnsemble
     # isdilute::Bool
 end
 
-"""
+@doc raw"""
     dipolarcoef(r, z0)
 
 Calculate the dipolar interaction strength given by vector `r` and default field at `z0`
+
+```math
+D_{ij}=\frac{1-3\cos^2(\theta_{ij})}{2r_{ij}^3} \gamma^2 \hbar
+```
 
 # Arguments
 - `r`: point vectors from one loc to another    
@@ -240,24 +244,31 @@ function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
     return f_sum/M, f_var/(M-1)
 end
 
-"""
-    decaytime(D, N; len=500, n_sigma=2)
+@doc raw"""
+    decaytime(D, len=500; scale=1.5)
 
-Given a set of coupling strength, determine the average `beta` by sampling.
-The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
-adding a standard deviation to `beta` given by `n_sigma`
+The FID is Fourier transform of the noise spectrum. 
+For a Gaussian noise with linewidth `b`, it's characteristic function is 
+```math
+f(t)=\int_{\infty}^\infty P(\beta) e^{-i \beta t} d\,\beta=\exp(-b^2 \,t^2/2), \quad P(\beta)=\frac{1}{\sqrt{2\pi b^2}} \exp(-\frac{\beta^2}{2b^2})
+```
+Thus the decay time is given by 
+```math
+T_2=\frac{\pi}{b}
+```
+
 
 # Arguments
 - `D::Vector{Real}`: a set of coupling strengths
-- `N`: sampling size
 - `len`: size of the generated time array 
-- `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
+# Options 
+- `scale`: scale factor to extend the T_2 
 """
-function decaytime(D::Vector{<:Real},N::Int=500; len=500::Int, n_sigma=2::Real)
-    sample=abs.(betasampling(D;N=N))
-    omega_m,omega_std=mean(sample),std(sample)
-    T=2pi/(omega_m+n_sigma*omega_std)
-    return collect(0:T/len:T)
+function decaytime(D::Vector{<:Real}, len=500::Int; scale=1.5::Real)
+    b=dipolarlinewidth(D)
+    t=π/b*scale 
+    dt=t/len
+    return 0:dt:t 
 end
 
 @doc raw"""
