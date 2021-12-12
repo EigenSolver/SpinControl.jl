@@ -1,38 +1,27 @@
 using Random
 
 """
-    randlocs(N, dim, a)
+    randcartesianlocs(n, a, b; dim=3)
 
-General method to generate a set of n dimensional locations array. 
-a matrix of size (N,d) N random location vectors distributed in a d-dimensional cube, scaled by a at range (-a,a)
-
-# Arguments
-- `N`: numer of locations 
-- `dim`: dimension 
-- `a`: scaling factor
-"""
-randlocs(N::Int,dim::Int, a=1.0::Real)=2*a*(rand!(zeros(N,dim)).-1/2)
-
-"""
-    randlocscubic(a, b; N=1, dim=3)
-
-Generate `N` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)`
+Generate `n` random location vectors distributed in a 3D cube, scaled by a at range `(-b,-a)∪(a,b)`
 
 # Arguments
 - `a`: lower bound of sampling range
 - `b`: upper bound of sampling range
-- `N`: numer of locations, in `[1,2,3]`
+- `n`: numer of locations, in `[1,2,3]`
+
+# Options
 - `dim`: dimension of the space
 """
-function randlocscubic(a::Real, b::Real; N=1::Int, dim=3)
+function randcartesianlocs(n=1::Int, a::Real, b::Real; dim=3::Int)
     @assert dim<=3
 
-    M=zeros(N,3)
+    M=zeros(n,3)
     rand!(@view(M[:,1:dim]),[1,-1])
-    @view(M[:,1]).*=rand(N).*(b-a).+a
+    @view(M[:,1]).*=rand(n).*(b-a).+a
     if dim>1
-        @view(M[:,2:dim]).*=rand(N,dim-1).*b
-        for i in 1:N
+        @view(M[:,2:dim]).*=rand(n,dim-1).*b
+        for i in 1:n
             shuffle!(@view M[i,1:dim])
         end
     end
@@ -41,20 +30,21 @@ end
 
 
 """
-    randlocsspherical(r_min, r_max; N)
+    randsphericallocs(n, r_min, r_max)
 
-Generate `N` random location vectors distributed in a 3D sphere
+Generate `n` random location vectors distributed in a 3D sphere,
+return a matrix of size (n,3), n random location vectors distributed in a 3D sphere
 
 # Arguments
 - `r_min`: lower bound of sampling radius
 - `r_max`: upper bound of sampling radius
-- `N`: numer of locations 
+- `n`: numer of locations 
 """
-function randlocsspherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
-    M=zeros(N,3)
-    r=cbrt.(rand(N).*(r_max^3-r_min^3).+r_min^3)
-    ϕ=rand(N).*2pi
-    θ=acos.(2*rand(N).-1)
+function randsphericallocs(n=1::Int, r_min=0.0::Real, r_max=1.0::Real)
+    M=zeros(n,3)
+    r=cbrt.(rand(n).*(r_max^3-r_min^3).+r_min^3)
+    ϕ=rand(n).*2pi
+    θ=acos.(2*rand(n).-1)
 
     M[:,1]=r.*sin.(θ).*cos.(ϕ)
     M[:,2]=r.*sin.(θ).*sin.(ϕ)
@@ -64,21 +54,20 @@ function randlocsspherical(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
 end
 
 """
-randlocsspherical(r_min, r_max; N)
+randsphericallocs(n, r_min, r_max)
 
-Generate `N` random location vectors distributed in a 2D plate
+Generate `n` random location vectors distributed in a 2D plate,
+return a matrix of size (n,3), n random location vectors distributed in a 3D sphere
 
 # Arguments
+- `n`: numer of locations 
 - `r_min`: lower bound of sampling radius
 - `r_max`: upper bound of sampling radius
-- `N`: numer of locations 
-Return:
-    a matrix of size (N,3), N random location vectors distributed in a 3D sphere
 """
-function randlocspolar(r_min=0.0::Real, r_max=1.0::Real; N=1::Int)
-    M=zeros(N,3)
-    r=sqrt.(rand(N).*(r_max^2-r_min^2).+r_min^2)
-    ϕ=rand(N).*2pi
+function randpolarlocs(n=1::Int, r_min=0.0::Real, r_max=1.0::Real)
+    M=zeros(n,3)
+    r=sqrt.(rand(n).*(r_max^2-r_min^2).+r_min^2)
+    ϕ=rand(n).*2pi
     
     M[:,1]=r.*cos.(ϕ)
     M[:,2]=r.*sin.(ϕ)      

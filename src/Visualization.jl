@@ -132,13 +132,13 @@ Visualize an array of effective magnetic field
 - `fitting`: fit the distribution with Gaussian distribution
 """
 function visualeffectivebeta(sample::AbstractArray{Float64};
-    bin_num=50, use_abs=:false, fitting=:true)
+    bin_set=-50:2:50, use_abs=:false, fitting=:true)
     
     if use_abs 
         sample=abs.(sample)
     end
 
-    fig=histogram(sample, bins = bin_num, xlabel=L"\beta_p", ylabel=L"\Delta P", norm=true,label="Beta Sample")
+    fig=histogram(sample, bins = bin_set, xlabel=L"\beta_p", ylabel=L"\Delta P", norm=false,label="Beta Sample")
     println("Distribution:")
     println("max: ",maximum(sample)," min: ",minimum(sample))
     println("avg: ", mean(sample)," std: ",std(sample))
@@ -146,8 +146,8 @@ function visualeffectivebeta(sample::AbstractArray{Float64};
     if fitting
         normal_est=fit(Normal{Float64},sample)
         mu,sigma=params(normal_est)
-        bins=LinRange(mu-4sigma,mu+4sigma,bin_num*2+1)
-        plot!(bins,map(x->pdf(normal_est,x),bins),linecolor=:red,linestyle=:dash,label="Normal Distribution")
+        # bins=LinRange(mu-4sigma,mu+4sigma,bin_num*2+1)
+        plot!(bins,map(x->pdf(normal_est,x),bin_set),linecolor=:red,linestyle=:dash,label="Normal Distribution")
         println("Estimation:")
         println("mu: ", mu, " sigma: ", sigma)
         println("likelihood: ", ℯ^loglikelihood(normal_est,sample))

@@ -102,8 +102,6 @@ totally `n` spins are uniformly distributed in a `dim` dimensional cubic space w
 - `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
-randcoefs(n::Int,dim::Int,a=1::Real)=dipolarcoefs(randlocs(n,dim,a))
-
 function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
     @assert dim>0 && dim<4
     @assert method in (:spherical, :cubic)
@@ -112,18 +110,21 @@ function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
 
     
     if method==:cubic
-        locs=randlocscubic(a,b, N=n, dim=dim)
+        locs=randcartesianlocs(n,a,b, dim=dim)
     else
         if dim==3
-            locs=randlocsspherical(a,b,N=n)
+            locs=randsphericallocs(n,a,b)
         elseif dim==2
-            locs=randlocspolar(a,b,N=n)
+            locs=randpolarlocs(n,a,b)
         else
-            locs=randlocscubic(a,b,N=n,dim=1)
+            locs=randcartesianlocs(n,a,b, dim=1)
         end
     end
     dipolarcoefs(locs)
 end
+
+randcoefs(n::Int,dim::Int,R=1::Real; method=:cubic)=
+randcoefs(n,dim,(0,R);method=method)
 
 @doc raw"""
     betasampling(D)
@@ -135,8 +136,10 @@ Give a random sampling of beta, which is a combination of `D_j`,
 
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
+# Options
+- `N`: size of Monte-Carlo sampling
 """
-betasampling(D::Vector{<:Real})=sum(rand([1,-1],length(D)).*D) 
+betasampling(D::Vector{<:Real}; N=1::Int)=sum(rand([1,-1],length(D)).*D) 
 
 @doc raw"""
     dipolarlinewidth(D)
@@ -177,15 +180,15 @@ f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
 ```
 
 ```math
-\bar{f}(t)=\frac{1}{M}\sum_{p=1}^M f_p(t)
+\bar{f}(t)=\frac{1}{N}\sum_{p=1}^N f_p(t)
 ```
 # Arguments
 - `t`: discrete array marking time 
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
-- `N`: size of Monte-Carlo sampling
 
 # Options
+- `N`: number of Monte-Carlo sampling
 - `geterr::Bool`: wetehr to return the error of the monte-sampling 
 """
 function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:false)
@@ -209,7 +212,7 @@ end
 
 
 @doc raw"""
-    averagefid(t, n_ensemble, sampling_D; [options]...)
+    averagefid(t, M, sampling_D; [options]...)
 
 Calculate the average free induction decay over different ensembles (disorders) 
 
@@ -219,22 +222,22 @@ Calculate the average free induction decay over different ensembles (disorders)
 
 # Arguments
 - `t`: the time array for the decay curve.
-- `n_ensemble::Integer`: the number of samplings on D set.
-- `sampling_D::function`: the function to sample over D
+- `M`: number of ensembles  
+- `sampling_D`: the function to sample over D
 """
-function averagefid(t::AbstractVector{<:Real}, n_ensemble::Int, sampling_D)
+function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
-    @showprogress for i in 1:n_ensemble
+    @showprogress for i in 1:M
         f_d=fid(t, sampling_D())
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end
-    return f_sum/n_ensemble, f_var/(n_ensemble-1)
+    return f_sum/M, f_var/(M-1)
 end
 
 """
-    decaytime(D, M; len=500, n_sigma=2)
+    decaytime(D, N; len=500, n_sigma=2)
 
 Given a set of coupling strength, determine the average `beta` by sampling.
 The average decay time of FID is given by `T=2π/beta`, the `T` is set shorter by 
@@ -242,12 +245,12 @@ adding a standard deviation to `beta` given by `n_sigma`
 
 # Arguments
 - `D::Vector{Real}`: a set of coupling strengths
-- `M`: sampling size
+- `N`: sampling size
 - `len`: size of the generated time array 
 - `n_sigma`: add standard deviations (σ in Gaussian distribution) to the averaged `beta`
 """
-function decaytime(D::Vector{<:Real},M::Int=500; len=500::Int, n_sigma=2::Real)
-    sample=abs.([betasampling(D) for i in 1:M])
+function decaytime(D::Vector{<:Real},N::Int=500; len=500::Int, n_sigma=2::Real)
+    sample=abs.([betasampling(D) for i in 1:N])
     omega_m,omega_std=mean(sample),std(sample)
     T=2pi/(omega_m+n_sigma*omega_std)
     return collect(0:T/len:T)
@@ -274,9 +277,9 @@ G(t)=\frac{1}{N}\sum_{p=1}^N g_p(t),\; g=x,y,z
 - `t`: discrete array marking time 
 - `D`: a set of the coupling strengths
 - `h`: strength of transverse field 
-- `N`: size of Monte-Carlo sampling, default at 100
 
 # Options
+- `N`: size of Monte-Carlo sampling, default at 100
 - `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
 - `returnerr::Bool`: wether to return the variance in sampling
 """
