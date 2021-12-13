@@ -154,4 +154,4 @@ function visualeffectivebeta(sample::AbstractArray{Float64};
     end
 
     display(fig)
-end;
+end
