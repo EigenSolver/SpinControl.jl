@@ -3,8 +3,8 @@ using Test
 using SpinEnsembles
 import LinearAlgebra: norm
 
-include("../src/RandLoctions.jl")
-include("../src/Visualization.jl")
+include("../src/randloctions.jl")
+include("../src/visualization.jl")
 
 ##
 M=randsphericallocs(1000,1,10)
@@ -29,11 +29,18 @@ M=randcartesianlocs(1000,1,10)
 @test all(v->all(x->x<10,abs.(v)), eachrow(M))
 
 ## Type pass for all the function
-@test typeof(dipolarcoefs(M))<:Vector{Float64}
+@test dipolarcoefs(M) isa Vector{Float64}
 
 ## Test FID function
 D=randcoefs(2000,3,10)
 t=0:0.01:20
 h=0.5
-fid(t,D,h)
-rabi(t,D,h)
+fid_curve=fid(t,D,h)
+@test fid_curve isa Vector{Float64}
+rabi_curve=rabi(t,D,h)
+@test rabi_curve isa Vector{Float64}
+
+## Test SpinEnsemble 
+spins=SpinEnsemble(1000,2,[1,1,0],3,5)
+@test abs(spins.rho-2.436)<1e3
+randlocs(spins)
