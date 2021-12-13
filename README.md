@@ -19,17 +19,27 @@ such as free induction decay (FID) and Rabi driving. Users can easily use these 
 
 The package is currently under developing. 
 
+## Development Schedule 
+1. Fast prototype and draft documentation v0.1.0
+2. `SpinEnsemble` type and method, v0.5.0
+3. `PulseSequence` type and methods v0.9.0
+4. Noise Simulation... v1.0.0
+5. 
+
 *Todo list*
 - [ ] Add control noise for `PulseSequence`
-- [ ] Add methods that manipulate `PulseSequence` and `SpinEnsemble`
+- [ ] Add methods interaction of `PulseSequence` and `SpinEnsemble`
 - [ ] Implement `PulseSequence` datatype
 - [ ] Add unitests for dilute ensemble and linewidth
 - [ ] Implement methods based on `SpinEnsemble`
-- [ ] Add lattice structure.
+- [ ] Add lattice structure for `SpinEnsemble`.
 - [ ] Implement `SpinEnsemble` datatype 
 - [ ] Implement ensemble averaged Rabi oscillation
 - [ ] Add continous integration (CI)
 - [ ] Deploy the documention on github IO
+- [ ] Use `Union` to implement multi-type functions
+- [ ] Use `@Macro` for easier visualization
+- [ ] Make unified modeling language (UML) diagram, for the architecture
 - [X] Reorganize the location functions
 - [X] Optimize APIs
 - [X] Write better documentation
@@ -41,7 +51,8 @@ The package is currently under developing.
 - [X] Encapsulate the package
 - [X] Implement visualization functions
 - [X] Add unittests
-- [X] Add adaptive decaytime of FID
+- [X] Add adaptive dephasingtime of FID
 - [X] Implement FID
 - [X] Implement random points generation
 - [X] Git version control
+- [ ] Read more on design pattern and software engineering
