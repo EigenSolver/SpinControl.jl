@@ -14,7 +14,7 @@ export SpinEnsemble, SpinCluster
 
 # mathods and functions
 export randlocs, randcoefs, 
-       fid, averagefid, rabi, betasampling, dephasingtime
+       fid, averagefid, rabi, averagerabi, betasampling, dephasingtime
 
 # visualization functions
 export visualcoupling, visualeffectivebeta, visualensemble, visualfid
@@ -28,6 +28,7 @@ export dipolarcoef, dipolarcoefs, dipolarlinewidth
 include("randloctions.jl")
 include("visualization.jl")
 include("spindynamics.jl")
+include("properties.jl")
 
 
 """
@@ -76,114 +77,13 @@ struct SpinEnsemble
     end
 end
 
-"""
-    SpinEnsemble(ensemble)
-    SpinEnsemble(locations)
-
-# Arguments:
-- `ensemble`: 
-"""
-mutable struct SpinCluster
-    ensemble::SpinEnsemble
-    locations::Matrix{Float64}
-    couplings::Vector{Float64}
-    linewidth::Float64
-
-    function SpinCluster(ensemble::SpinEnsemble)
-        locs=randlocs(ensemble)
-        D=dipolarcoefs(locs)
-        new(ensemble, locs, D, dipolarlinewidth(D))
-    end 
-
-    SpinCluster(locations::Matrix{Float64})=
-    (D=dipolarcoefs(locations); new(missing, locations, D, dipolarlinewidth(D)))
-end
-
 isdilute(ensemble::SpinEnsemble)=ensemble.rho<1
-isdilute(spins::SpinCluster)=spins.ensemble.rho<1
 
-function randlocs(ensemble::SpinEnsemble)
-    return randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R); method=ensemble.shape)
-end
+randlocs(ensemble::SpinEnsemble)=randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R); method=ensemble.shape)
 
-randcoefs(ensemble::SpinEnsemble)=dipolarcoefs(randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R); method=ensemble.shape))
+randcoefs(ensemble::SpinEnsemble)=dipolarcoefs(randlocs(ensemble))
 
 
-@doc raw"""
-    betasampling(D; N)
-
-Give a random sampling of beta, which is a combination of `D_j`,
-```math
-\beta_p = \sum_j p_j \,D_j,\; p_j=\pm 1
-```
-
-# Arguments
-- `D`: coupling strength of dipolar interactions, a array of floats
-- `ensemble`: a `SpinEnsemble`, use this function as the method of the type 
-# Options
-- `N`: size of Monte-Carlo sampling
-"""
-function betasampling(D::Vector{<:Real}; N=1::Int)
-    n=length(D)
-    return [sum(rand([1,-1],n).*D) for i in 1:N]
-end
-
-"""
-    betasampling(ensemble; N)
-
-Get the Gaussian linewidth of dipolar coupling for the given spin cluster
-"""
-function betasampling(spins::SpinCluster; N=1::Int)
-    return betasampling(spins.couplings, N=N)
-end
-
-@doc raw"""
-    dipolarlinewidth(D)
-
-Get the linewidth of D, which follows Gaussian distribution. 
-
-```math
-b=\sqrt{\sum_j D_j^2}
-```
-# Arguments
-- `D`: coupling strength of dipolar interactions, a array of floats
-"""
-dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
-dipolarlinewidth(spins::SpinCluster)=spins.linewidth # in time computed and stored
-
-@doc raw"""
-    dephasingtime(D, n_t=500; scale=1.2)
-
-The FID is Fourier transform of the noise spectrum. 
-For a Gaussian noise with linewidth `b`, it's characteristic function is 
-```math
-f(t)=\int_{\infty}^\infty P(\beta) e^{-i \beta t} d\,\beta=\exp(-b^2 \,t^2/2), \quad P(\beta)=\frac{1}{\sqrt{2\pi b^2}} \exp(-\frac{\beta^2}{2b^2})
-```
-Thus the decay time is given by 
-```math
-T_2=\frac{\pi}{b}
-```
-
-# Arguments
-- `D::Vector{Real}`: a set of coupling strengths
-- `n_t`: size of the generated time array 
-# Options 
-- `scale`: scale factor to extend the T_2 
-"""
-function dephasingtime(D::Vector{<:Real}, n_t=500::Int; scale=1.2::Real)
-    b=dipolarlinewidth(D)
-    t=π/b*scale 
-    dt=t/n_t
-    return 0:dt:t 
-end
-dephasingtime(spins::SpinCluster, n_t=500::Int; scale=1.2::Real)=dephasingtime(spins.D, n_t; scale=scale)
-
-dephasingtime(D::Vector{<:Real})=π/dipolarlinewidth(D)
-dephasingtime(spins::SpinCluster)=π/dipolarlinewidth(spins.D)
-
-"""
-
-"""
 function dephasingtime(ensemble::SpinEnsemble)
     if isdilute(ensemble)
         if ensemble.dim==3
@@ -200,10 +100,107 @@ function dephasingtime(ensemble::SpinEnsemble)
     end
 end
 
-function dephasingtime(ensemble::SpinEnsemble, n_t=500; scale=1.2::Real)
-    t=dephasingtime(ensemble)*scale
-    dt=t/n_t
-    return 0:dt:t 
+function averagefid(ensemble::SpinEnsemble; M=1000::Int, n_t=200::Int, scale=1.0::Real)
+    T2=dephasingtime(ensemble)*scale
+    t=0:T2/n_t:T2 
+    f_sum=zeros(length(t))
+    f_var=copy(f_sum)
+    @showprogress for i in 1:M
+        f_d=fid(t, randcoefs(ensemble))
+        f_sum+=f_d
+        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
+    end
+    if returnerr
+        return f_sum/M, f_var/(M-1)
+    else
+        return f_sum/M
+    end
+end
+
+function averagerabi(ensemble::SpinEnsemble, h::Real; M=1000::Int, n_t=200::Int, scale=1.0::Real)
+    T2=dephasingtime(ensemble)*scale
+    t=0:T2/n_t:T2 
+    f_sum=zeros(length(t))
+    f_var=copy(f_sum)
+    @showprogress for i in 1:M
+        f_d=rabi(t, randcoefs(ensemble), h)
+        f_sum+=f_d
+        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
+    end
+    if returnerr
+        return f_sum/M, f_var/(M-1)
+    else
+        return f_sum/M
+    end
+end
+
+
+
+mutable struct SpinCluster
+    ensemble::SpinEnsemble
+    locations::Matrix{Float64}
+    couplings::Vector{Float64}
+    linewidth::Float64
+
+    function SpinCluster(ensemble::SpinEnsemble)
+        locs=randlocs(ensemble)
+        D=dipolarcoefs(locs)
+        new(ensemble, locs, D, dipolarlinewidth(D))
+    end 
+
+    SpinCluster(locations::Matrix{Float64})=
+    (D=dipolarcoefs(locations); new(missing, locations, D, dipolarlinewidth(D)))
+end
+
+isdilute(spins::SpinCluster)=spins.ensemble.rho<1
+
+"""
+    betasampling(ensemble; N)
+
+Get the Gaussian linewidth of dipolar coupling for the given spin cluster
+"""
+function betasampling(spins::SpinCluster; N=1::Int)
+    return betasampling(spins.couplings, N=N)
+end
+
+dipolarlinewidth(spins::SpinCluster)=spins.linewidth # in time computed and stored
+
+dephasingtime(spins::SpinCluster)=π/dipolarlinewidth(spins.D)
+
+"""
+    fid(spins; options)
+
+Calculate the free induction dacay of the given spin cluster
+"""
+function fid(spins::SpinCluster; n_t=200::Int, scale=1.0::Real)# analytical solution
+    T2=dephasingtime(spins)*scale
+    t=0:T2/n_t:T2
+    return fid(t, spins.couplings)
+end
+
+# mote-carlo
+function fid(spins::SpinCluster,h::Real; 
+    N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=:false)
+    T2=dephasingtime(spins)*scale
+    t=0:T2/n_t:T2
+    fid(t, spins.couplings, h; N=N, geterr=geterr)
+end
+
+# analytical solution
+function rabi(spins::SpinCluster,h::Real; 
+    axis=3::Int, n_t=200::Int, scale=1.0::Real)
+    T2=dephasingtime(spins)*scale
+    t=0:T2/n_t:T2
+    return rabi(t, spins.couplings,h; axis=axis)
+end
+
+
+# mote-carlo
+function rabi(spins::SpinCluster, h::Real; 
+    N=100::Int, axis=3::Int, n_t=200::Int, scale=1.0::Real, returnerr=false)
+    T2=dephasingtime(spins)*scale
+    t=0:T2/n_t:T2
+    return rabi(t, spins.couplings, h; N=N, axis=axis, returnerr=returnerr)
 end
 
 end

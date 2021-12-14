@@ -16,15 +16,6 @@ f(t)=\frac{1}{2}\prod_j \cos(D_jt)
 fid(t::Real,D::Vector{<:Real})=mapreduce(cos,*,D*t)/2;
 fid(t::AbstractVector{<:Real},D::Vector{<:Real})=map(x->fid(x,D),t);
 
-"""
-    fid(spins; options)
-
-Calculate the free induction dacay of the given spin cluster
-"""
-function fid(spins::SpinCluster; n_t=200::Int, scale=1.2::Real)
-    t=dephasingtime(spins)*scale
-    return fid(0:t/n_t:t, spins.couplings)
-end
 
 @doc raw"""
     averagefid(t, M, sampling_D; [options]...)
@@ -54,21 +45,7 @@ function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function; ret
         return f_sum/M, f_var/(M-1)
     else
         return f_sum/M
-end
-
-function averagefid(ensemble::SpinEnsemble; M=1000::Int, n_t=200::Int, scale=1.2::Real)
-    t=dephasingtime(ensemble, n_t; scale=scale)
-    f_sum=zeros(length(t))
-    f_var=copy(f_sum)
-    @showprogress for i in 1:M
-        f_d=fid(t, randcoefs(ensemble))
-        f_sum+=f_d
-        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end
-    if returnerr
-        return f_sum/M, f_var/(M-1)
-    else
-        return f_sum/M
 end
 
 
@@ -112,16 +89,6 @@ function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, ge
         return f_sum/N
     end
 end
-
-fid(t::AbstractVector{<:Real},spins::SpinCluster,h::Real; N=100::Int, geterr=:false)=
-fid(t, spins.couplings, h; N=N, geterr=geterr)
-
-function fid(spins::SpinCluster,h::Real; 
-    N=100::Int, n_t=200::Int, scale=1.2::Real, geterr=:false)
-    t=dephasingtime(spins)*scale
-    fid(0:t/n_t:t, spins.couplings, h; N=N, geterr=geterr)
-end
-
 
 @doc raw"""
     rabi(t, h, b; [axis])
@@ -203,11 +170,6 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real;
     end
 end
 
-function rabi(t::AbstractVector{<:Real}, spins::SpinCluster, h::Real; 
-    N=100::Int, axis=3::Int, returnerr=false)
-    return rabi(t, spins.couplings, h; N=N, axis=axis, returnerr=returnerr)
-end
-
 function _rabiz(t::AbstractVector{<:Real},β::Real,h::Real)
     ω=sqrt(h^2+β^2)/2
     cos2=cos.(ω*t).^2
@@ -225,18 +187,3 @@ function _rabix(t::AbstractVector{<:Real},β::Real,h::Real)
     return sin2*(β*h)/(h^2+β^2)
 end
 
-
-function averagerabi(ensemble::SpinEnsemble, h::Real; M=1000::Int, n_t=200::Int, scale=1.2::Real)
-    t=dephasingtime(ensemble, n_t; scale=scale)
-    f_sum=zeros(length(t))
-    f_var=copy(f_sum)
-    @showprogress for i in 1:M
-        f_d=rabi(t, randcoefs(ensemble), h)
-        f_sum+=f_d
-        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
-    end
-    if returnerr
-        return f_sum/M, f_var/(M-1)
-    else
-        return f_sum/M
-end
