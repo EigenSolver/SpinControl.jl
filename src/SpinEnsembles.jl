@@ -13,8 +13,7 @@ import ProgressMeter: @showprogress
 export SpinEnsemble, SpinCluster
 
 # mathods and functions
-export randlocs, randcoefs, 
-       fid, averagefid, rabi, averagerabi, betasampling, dephasingtime
+export fid, averagefid, rabi, averagerabi, betasampling, dephasingtime
 
 # visualization functions
 export visualcoupling, visualeffectivebeta, visualensemble, visualfid
@@ -23,7 +22,7 @@ export visualcoupling, visualeffectivebeta, visualensemble, visualfid
 export fid_plot_options
 
 # optional
-export dipolarcoef, dipolarcoefs, dipolarlinewidth
+# export dipolarcoef, dipolarcoefs, dipolarlinewidth
 
 include("randloctions.jl")
 include("visualization.jl")
@@ -45,37 +44,73 @@ include("properties.jl")
 """
 struct SpinEnsemble
     n::Int
+    rho::Float64
     dim::Int
     z0::Vector{Float64}
     
     r::Float64
     R::Float64
-    rho::Float64
     shape::Symbol
+    T2::Float64
 
     # a:: Float64
     # f::Real
     # h::Real
-
     function SpinEnsemble(n::Int,dim::Int,z0::AbstractVector{<:Real},
-    r::Real, R::Real, shape=:spherical)
+    r::Real, R::Real, shape=:spherical::Symbol)
         @assert dim in (1,2,3)
         @assert shape in (:spherical, :cubic)
+        @assert abs(n-rho*_volume(dim, r, R, shape))<1
 
-        if shape==:spherical
-            rho=(n/(2*(R-r)),n/(π*(R^2-r^2)),n/(4π/3*(R^3-r^3)))[dim]
-        elseif shape==:cubic
-            rho=(n/(2*(R-r)),n/(4*(R^2-r^2)),n/(8*(R^3-r^3)))[dim]
-        end
-        
-        return new(n,dim,normalize(z0),Float64(r),Float64(R),rho,shape)
+        return new(n,dim,normalize(z0),float(r),float(R),rho,shape)
+    end
+
+    function SpinEnsemble(n::Int,dim::Int,z0::AbstractVector{<:Real},
+    r::Real, R::Real, shape=:spherical::Symbol)
+        V=_volume(dim, r, R, shape)
+        rho=n/V
+        return SpinEnsemble(n,dim,z0,r,R,rho,shape)
+    end
+
+    function SpinEnsemble(rho::Float64,dim::Int,z0::AbstractVector{<:Real},
+        r::Real, R::Real, shape=:spherical)
+        V=_volume(dim, r, R, shape)
+        n=floor(Int, rho*V)
+        return SpinEnsemble(n,dim,z0,r,R,rho,shape)      
     end
 
     function SpinEnsemble(n::Int,dim::Int,z0::AbstractVector{<:Real},
         bound::Tuple{Real,Real}, shape=:spherical)
         return SpinEnsemble(n, dim, z0, bound[0], bound[1], shape)
     end
+    # function SpinEnsemble(n_or_rho::Union{Int,Float64},dim::Int,z0::AbstractVector{<:Real},
+    #     r::Real, R::Real, shape=:spherical::Symbol)
+    #         V=_volume(dim, r, R, shape)
+    #         if n_or_rho isa Int
+    #             n=n_or_rho
+    #             rho=n/V
+    #         elseif n_or_rho isa Float64
+    #             rho=n_or_rho
+    #             n=floor(Int, rho*V)
+    #         return SpinEnsemble(n,dim,z0,r,R,rho,shape)
+    #     end
+    
 end
+
+function _volume(dim::Int, r::Real, R::Real, shape::Symbol)
+    if shape==:spherical
+        V=((π*(R^2-r^2)),(4π/3*(R^3-r^3)))[dim]
+    elseif shape==:cubic
+        V=((2*(R-r)),(4*(R^2-r^2)),(8*(R^3-r^3)))[dim]
+    end
+    return V
+end
+
+function volume(ensemble::SpinEnsemble)
+    return _volume(ensemble.dim, ensemble.r, ensemble.R, ensemble.shape)
+end
+
+
 
 isdilute(ensemble::SpinEnsemble)=ensemble.rho<1
 
@@ -100,9 +135,7 @@ function dephasingtime(ensemble::SpinEnsemble)
     end
 end
 
-function averagefid(ensemble::SpinEnsemble; M=1000::Int, n_t=200::Int, scale=1.0::Real)
-    T2=dephasingtime(ensemble)*scale
-    t=0:T2/n_t:T2 
+function averagefid(t::AbstractVector{Float64}, ensemble::SpinEnsemble; M=1000::Int, returnerr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:M
@@ -117,9 +150,16 @@ function averagefid(ensemble::SpinEnsemble; M=1000::Int, n_t=200::Int, scale=1.0
     end
 end
 
-function averagerabi(ensemble::SpinEnsemble, h::Real; M=1000::Int, n_t=200::Int, scale=1.0::Real)
+function averagefid(ensemble::SpinEnsemble;
+     M=1000::Int, n_t=200::Int, scale=1.0::Real, returnerr=false)
     T2=dephasingtime(ensemble)*scale
     t=0:T2/n_t:T2 
+    return averagefid(t, ensemble; M=M, returnerr=returnerr)
+end
+
+
+function averagerabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
+     M=1000::Int, returnerr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:M
@@ -134,9 +174,15 @@ function averagerabi(ensemble::SpinEnsemble, h::Real; M=1000::Int, n_t=200::Int,
     end
 end
 
-
+function averagerabi(ensemble::SpinEnsemble, h::Real; 
+    M=1000::Int, n_t=200::Int, scale=1.0::Real, returnerr=false)
+    T2=dephasingtime(ensemble)*scale
+    t=0:T2/n_t:T2 
+    return averagerabi(t, ensemble, h; M=M, returnerr=returnerr)
+end
 
 mutable struct SpinCluster
+    n::Int
     ensemble::SpinEnsemble
     locations::Matrix{Float64}
     couplings::Vector{Float64}
@@ -160,7 +206,7 @@ isdilute(spins::SpinCluster)=spins.ensemble.rho<1
 Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 """
 function betasampling(spins::SpinCluster; N=1::Int)
-    return betasampling(spins.couplings, N=N)
+    return [sum(rand([1,-1],n).*spins.couplings) for i in 1:N]
 end
 
 dipolarlinewidth(spins::SpinCluster)=spins.linewidth # in time computed and stored
