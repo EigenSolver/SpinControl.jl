@@ -41,5 +41,5 @@ betasampling(D_set::Vector{<:Real})
 ```
 
 ```@docs
-decaytime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
+dephasingtime(D::Vector{<:Real},M::Int=500;len=500::Int,n_sigma=2::Real)
 ```

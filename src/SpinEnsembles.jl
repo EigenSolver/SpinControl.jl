@@ -1,6 +1,4 @@
 """
-    SpinEnsembles
-
 A julia package that provides necessary functionalities to study the 
 quantum decoherence in disordered spin ensembles.
 """
@@ -8,20 +6,28 @@ module SpinEnsembles
 
 using LinearAlgebra
 using Statistics
+import SpecialFunctions: gamma
 import ProgressMeter: @showprogress
 
-# functions
-export dipolarcoef, dipolarcoefs, dipolarlinewidth, randlocs, randcoefs,
-       fid, averagefid, rabi, betasampling, dephasingtime,
-       visualcoupling, visualeffectivebeta, visualensemble, visualfid
+# datetpye
+export SpinEnsemble, SpinCluster
+
+# mathods and functions
+export randlocs, randcoefs, 
+       fid, averagefid, rabi, betasampling, dephasingtime
+
+# visualization functions
+export visualcoupling, visualeffectivebeta, visualensemble, visualfid
 
 # constant
 export fid_plot_options
 
+# optional
+export dipolarcoef, dipolarcoefs, dipolarlinewidth
 
 include("randloctions.jl")
 include("visualization.jl")
-include("dynamics.jl")
+include("spindynamics.jl")
 
 
 """
@@ -49,11 +55,10 @@ struct SpinEnsemble
     # a:: Float64
     # f::Real
     # h::Real
-    locs::Matrix{Float64}
-    D::Vector{Float64}
 
     function SpinEnsemble(n::Int,dim::Int,z0::AbstractVector{<:Real},
     r::Real, R::Real, shape=:spherical)
+        @assert dim in (1,2,3)
         @assert shape in (:spherical, :cubic)
 
         if shape==:spherical
@@ -72,129 +77,40 @@ struct SpinEnsemble
 end
 
 """
-    randlocs(n, dim, R)
-    randlocs(n, dim, bound; method)
+    SpinEnsemble(ensemble)
+    SpinEnsemble(locations)
 
-Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
-totally `n` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
-
-# Arguments
-- `n`: number of spins in ensemble
-- `dim`: dimension
-- `R`: scale of ensemble
-- `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
-
-# Options
-- `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
+# Arguments:
+- `ensemble`: 
 """
-function randlocs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
-    @assert dim>0 && dim<4
-    @assert method in (:spherical, :cubic)
-    a,b=bound
-    @assert a>=0 && b>=0
-    a,b= a<b ? (a,b) : (b,a)
+mutable struct SpinCluster
+    ensemble::SpinEnsemble
+    locations::Matrix{Float64}
+    couplings::Vector{Float64}
+    linewidth::Float64
 
-    if method==:cubic
-        locs=randcartesianlocs(n,a,b, dim=dim)
-    else
-        if dim==3
-            locs=randsphericallocs(n,a,b)
-        elseif dim==2
-            locs=randpolarlocs(n,a,b)
-        else
-            locs=randcartesianlocs(n,a,b, dim=1)
-        end
-    end
-    return locs
+    function SpinCluster(ensemble::SpinEnsemble)
+        locs=randlocs(ensemble)
+        D=dipolarcoefs(locs)
+        new(ensemble, locs, D, dipolarlinewidth(D))
+    end 
+
+    SpinCluster(locations::Matrix{Float64})=
+    (D=dipolarcoefs(locations); new(missing, locations, D, dipolarlinewidth(D)))
 end
 
-randlocs(n::Int,dim::Int,R=1::Real; method=:cubic)=randlocs(n,dim,(0,R);method=method)
+isdilute(ensemble::SpinEnsemble)=ensemble.rho<1
+isdilute(spins::SpinCluster)=spins.ensemble.rho<1
 
-function randlocs(spins::SpinEnsemble)
-    return randlocs(spins.n, spins.dim, (spins.r,spins.R); method=spins.shape)
+function randlocs(ensemble::SpinEnsemble)
+    return randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R); method=ensemble.shape)
 end
 
-function randlocs!(spins::SpinEnsemble)
-    spins.locs=randlocs(spins)
-end
-
+randcoefs(ensemble::SpinEnsemble)=dipolarcoefs(randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R); method=ensemble.shape))
 
 
 @doc raw"""
-    dipolarcoef(r, z0)
-
-Calculate the dipolar interaction strength given by vector `r` and default field at `z0`
-
-```math
-D_{ij}=\frac{1-3\cos^2(\theta_{ij})}{2r_{ij}^3} \gamma^2 \hbar
-```
-
-# Arguments
-- `r`: point vectors from one loc to another    
-- `z0`: direction of the background magnetic field
-
-# Examples
-```jldoctest
-julia> v0 = [2, 2, 1]; z0=[0, 0, 1];
-julia> dipolarcoef(v0,z0)
-0.01234567901234568
-julia> v0 = [1, 0, 1]; z0=[0, 0, 1];
-julia> dipolarcoef(v0,z0)
--0.08838834764831834
-```    
-"""
-function dipolarcoef(r::AbstractVector{<:Real},z0::AbstractVector{<:Real})
-    # suppose z0 is already normalized
-    cosθ=dot(r,z0)/norm(r) #calculate the cos(θ) between the vector and the z axis
-    D=0.5*(1-3cosθ^2)/norm(r)^3
-    return D
-end
-
-"""
-    dipolarcoefs(locs, z0)
-
-Get a list of dipolar coupling strength between the centered spin and bath
-
-# Arguments
-- `locs`: an array of vector, distance from the central spin to the spins in bath 
-- `z0`: the direction of external field, set to z axis by default
-"""
-function dipolarcoefs(locs::Matrix{<:Real},z0=[0,0,1.0]::AbstractVector{<:Real})
-    normalize!(z0)
-    return map(x->dipolarcoef(x,z0), eachrow(locs))
-end
-
-"""
-    randcoefs(n, dim, R)
-    randcoefs(n, dim, bound; method)
-
-Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
-totally `n` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
-
-# Arguments
-- `n`: number of spins in ensemble
-- `dim`: dimension
-- `R`: scale of ensemble
-- `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
-
-# Options
-- `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
-"""
-function randcoefs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
-    return dipolarcoefs(randlocs(n, dim, bound; method=method))
-end
-
-randcoefs(n::Int,dim::Int,R=1::Real; method=:cubic)=randcoefs(n,dim,(0,R);method=method)
-
-randcoefs(spins::SpinEnsemble)=dipolar(randlocs(spins.n, spins.dim, (spins.r,spins.R); method=spins.shape))
-
-
-function randlocs!(spins::SpinEnsemble)
-    spins.locs=randcoefs(spins)
-end
-
-@doc raw"""
-    betasampling(D)
+    betasampling(D; N)
 
 Give a random sampling of beta, which is a combination of `D_j`,
 ```math
@@ -203,12 +119,22 @@ Give a random sampling of beta, which is a combination of `D_j`,
 
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
+- `ensemble`: a `SpinEnsemble`, use this function as the method of the type 
 # Options
 - `N`: size of Monte-Carlo sampling
 """
 function betasampling(D::Vector{<:Real}; N=1::Int)
     n=length(D)
     return [sum(rand([1,-1],n).*D) for i in 1:N]
+end
+
+"""
+    betasampling(ensemble; N)
+
+Get the Gaussian linewidth of dipolar coupling for the given spin cluster
+"""
+function betasampling(spins::SpinCluster; N=1::Int)
+    return betasampling(spins.couplings, N=N)
 end
 
 @doc raw"""
@@ -223,35 +149,10 @@ b=\sqrt{\sum_j D_j^2}
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
 dipolarlinewidth(D::Vector{<:Real})=sqrt(mapreduce(abs2,+,D))
-
-
-@doc raw"""
-    averagefid(t, M, sampling_D; [options]...)
-
-Calculate the average free induction decay over different ensembles (disorders) 
-
-```math
-\bar{f}(t)=\sum_k f(t; \{D_i\}_k)
-```
-
-# Arguments
-- `t`: the time array for the decay curve.
-- `M`: number of ensembles  
-- `sampling_D`: the function to sample over D
-"""
-function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
-    f_sum=zeros(length(t))
-    f_var=copy(f_sum)
-    @showprogress for i in 1:M
-        f_d=fid(t, sampling_D())
-        f_sum+=f_d
-        f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
-    end
-    return f_sum/M, f_var/(M-1)
-end
+dipolarlinewidth(spins::SpinCluster)=spins.linewidth # in time computed and stored
 
 @doc raw"""
-    dephasingtime(D, len=500; scale=1.5)
+    dephasingtime(D, n_t=500; scale=1.2)
 
 The FID is Fourier transform of the noise spectrum. 
 For a Gaussian noise with linewidth `b`, it's characteristic function is 
@@ -263,22 +164,46 @@ Thus the decay time is given by
 T_2=\frac{\pi}{b}
 ```
 
-
 # Arguments
 - `D::Vector{Real}`: a set of coupling strengths
-- `len`: size of the generated time array 
+- `n_t`: size of the generated time array 
 # Options 
 - `scale`: scale factor to extend the T_2 
 """
-function dephasingtime(D::Vector{<:Real}, len=500::Int; scale=1.5::Real)
+function dephasingtime(D::Vector{<:Real}, n_t=500::Int; scale=1.2::Real)
     b=dipolarlinewidth(D)
     t=π/b*scale 
-    dt=t/len
+    dt=t/n_t
     return 0:dt:t 
 end
+dephasingtime(spins::SpinCluster, n_t=500::Int; scale=1.2::Real)=dephasingtime(spins.D, n_t; scale=scale)
 
 dephasingtime(D::Vector{<:Real})=π/dipolarlinewidth(D)
+dephasingtime(spins::SpinCluster)=π/dipolarlinewidth(spins.D)
 
-dephasingtime(spins::SpinEnsemble)=dephasingtime(spins.D)
+"""
+
+"""
+function dephasingtime(ensemble::SpinEnsemble)
+    if isdilute(ensemble)
+        if ensemble.dim==3
+            return 6/(ensemble.rho*π^2)*(3*sqrt(3))/8
+        elseif ensemble.dim==2
+            return 2*(ensemble.rho*π/2*gamma(1/3))^(-3/2)
+        elseif ensemble.dim==1
+            return -2*(ensemble.rho/sqrt(3)*gamma(-1/3))^(-3)
+        else
+            throw(DomainError(ensemble.dim,"Invalide ensemble dimension."))
+        end
+    else
+        throw(DomainError("Ensemble is not dilute"))
+    end
+end
+
+function dephasingtime(ensemble::SpinEnsemble, n_t=500; scale=1.2::Real)
+    t=dephasingtime(ensemble)*scale
+    dt=t/n_t
+    return 0:dt:t 
+end
 
 end

@@ -1,5 +1,6 @@
 using Random
 
+
 """
     randcartesianlocs(n, a, b; dim=3)
 
@@ -81,3 +82,44 @@ function randpolarlocs(n::Int, r_min=0.0::Real, r_max=1.0::Real)
 
     M
 end
+
+
+"""
+    randlocs(n, dim, R)
+    randlocs(n, dim, bound; method)
+
+Randomly distribute a spin bath, generate the dipolar coupling strength between the centered spin and bath, 
+totally `n` spins are uniformly distributed in a `dim` dimensional cubic space with lenght `a`
+
+# Arguments
+- `n`: number of spins in ensemble
+- `dim`: dimension
+- `R`: scale of ensemble
+- `bound::Tuple{Real, Real}`: tuple, indicate bounds of sampling range 
+
+# Options
+- `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
+"""
+function randlocs(n::Int, dim::Int, bound::Tuple{Real,Real}; method=:cubic)
+    @assert dim>0 && dim<4
+    @assert method in (:spherical, :cubic)
+    a,b=bound
+    @assert a>=0 && b>=0
+    a,b= a<b ? (a,b) : (b,a)
+
+    if method==:cubic
+        locs=randcartesianlocs(n,a,b, dim=dim)
+    else
+        if dim==3
+            locs=randsphericallocs(n,a,b)
+        elseif dim==2
+            locs=randpolarlocs(n,a,b)
+        else
+            locs=randcartesianlocs(n,a,b, dim=1)
+        end
+    end
+    return locs
+end
+
+randlocs(n::Int,dim::Int,R=1::Real; method=:cubic)=randlocs(n,dim,(0,R);method=method)
+
