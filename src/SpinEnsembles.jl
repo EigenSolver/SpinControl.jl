@@ -13,7 +13,7 @@ import ProgressMeter: @showprogress
 export SpinEnsemble, SpinCluster
 
 # mathods and functions
-export fid, averagefid, rabi, averagerabi, betasampling, dephasingtime
+export fid, averagefid, rabi, averagerabi, betasampling, dephasingtime, randlocs, randcoefs
 
 # visualization functions
 export visualcoupling, visualeffectivebeta, visualensemble, visualfid
@@ -22,7 +22,7 @@ export visualcoupling, visualeffectivebeta, visualensemble, visualfid
 export fid_plot_options
 
 # optional
-# export dipolarcoef, dipolarcoefs, dipolarlinewidth
+export dipolarcoef, dipolarcoefs, dipolarlinewidth
 
 include("randloctions.jl")
 include("visualization.jl")
