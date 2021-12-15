@@ -54,7 +54,7 @@ struct SpinEnsemble
 
     function SpinEnsemble(n_or_rho::Union{Int,Float64},dim::Int,z0::AbstractVector{<:Real},
         r::Real, R::Real, shape=:spherical::Symbol)
-        @assert rho>0
+        @assert n_or_rho>0
         @assert dim in (1,2,3)
         @assert shape in (:spherical, :cubic)
         @assert abs(n-rho*_volume(dim, r, R, shape))<1
@@ -136,7 +136,6 @@ function averagefid(ensemble::SpinEnsemble;
     t=dephasingtime(ensemble, n_t; scale=scale)
     return averagefid(t, ensemble; M=M, geterr=geterr)
 end
-
 
 function averagerabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
     M=1000::Int, geterr=false)
@@ -255,7 +254,6 @@ function fid(t::AbstractVector{Float64}, spins::SpinCluster,h::Real;
     end
 end
 
-
 function fid(spins::SpinCluster,h::Real; 
     N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=dephasingtime(spins,n_t; scale=scale)
@@ -263,9 +261,8 @@ function fid(spins::SpinCluster,h::Real;
 end
 
 
-
 # analytical solution (approximate at h>>b)
-function rabi(t::AbstractVector{Float64},spins::SpinCluster,h::Real; 
+function rabi(t::AbstractVector{Float64}, spins::SpinCluster, h::Real; 
     axis=3::Int)
     @assert axis in (1,2,3)
 
