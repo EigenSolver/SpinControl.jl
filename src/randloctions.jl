@@ -1,6 +1,5 @@
 using Random
 
-
 """
     randcartesianlocs(n, a, b; dim=3)
 
