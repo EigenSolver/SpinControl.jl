@@ -54,10 +54,10 @@ struct SpinEnsemble
 
     function SpinEnsemble(n_or_rho::Union{Int,Float64},dim::Int,z0::AbstractVector{<:Real},
         r::Real, R::Real, shape=:spherical::Symbol)
+
         @assert n_or_rho>0
         @assert dim in (1,2,3)
         @assert shape in (:spherical, :cubic)
-        @assert abs(n-rho*_volume(dim, r, R, shape))<1
 
         V=_volume(dim, r, R, shape)
         if n_or_rho isa Int
@@ -67,6 +67,7 @@ struct SpinEnsemble
             rho=n_or_rho
             n=floor(Int, rho*V)
         end
+        # @assert abs(n-rho*_volume(dim, r, R, shape))<1
 
         return new(n,rho,dim,normalize(z0),float(r),float(R),shape)  
     end
