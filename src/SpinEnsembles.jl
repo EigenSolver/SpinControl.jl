@@ -76,7 +76,7 @@ end
 
 function _volume(dim::Int, r::Real, R::Real, shape::Symbol)
     if shape==:spherical
-        V=((π*(R^2-r^2)),(4π/3*(R^3-r^3)))[dim]
+        V=((2*(R-r)),(π*(R^2-r^2)),(4π/3*(R^3-r^3)))[dim]
     elseif shape==:cubic
         V=((2*(R-r)),(4*(R^2-r^2)),(8*(R^3-r^3)))[dim]
     end
