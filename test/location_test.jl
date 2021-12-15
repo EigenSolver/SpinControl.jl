@@ -1,5 +1,3 @@
-using Test
-
 include("../src/randloctions.jl")
 
 @testset begin
@@ -8,7 +6,7 @@ include("../src/randloctions.jl")
 
     ## Test the datatype
     @test typeof(M)<:Matrix{Float64}
-    @test typeof(M)<:AbstractArray{Float64}
+    @test typeof(M)<:AbstractVector{Float64}
     @test typeof(randcoefs(100,3,10))<:Vector{Float64}
 
     ## Test the numerical range 
@@ -18,7 +16,7 @@ include("../src/randloctions.jl")
 
     ## Test the datatype
     @test typeof(M)<:Matrix{Float64}
-    @test typeof(M)<:AbstractArray{Float64}
+    @test typeof(M)<:AbstractVector{Float64}
     @test typeof(randcoefs(100,3))<:Vector{Float64}
 
     ## Test the numerical range 

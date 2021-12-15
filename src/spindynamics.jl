@@ -29,11 +29,11 @@ Calculate the average free induction decay over different ensembles (disorders)
 
 # Arguments
 - `t`: the time array for the decay curve.
-- `M`: number of ensembles  
+- `M`: number of ensembles
 - `ensemble`: spin ensemble
 - `sampling_D`: the function to sample over D
 """
-function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function; returnerr=true)
+function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function; geterr=true)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:M
@@ -41,7 +41,7 @@ function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function; ret
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
     end
-    if returnerr
+    if geterr
         return f_sum/M, f_var/(M-1)
     else
         return f_sum/M
@@ -49,28 +49,6 @@ function averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function; ret
 end
 
 
-@doc raw"""
-    fid(t, D, h; N)
-    fid(t, spins, h; N)
-
-Simulate FID signal with given transverse magnetic field `h`, using Monte-Carlo sampling
-
-```math
-f_p(t)=\frac{1}{2}[\cos^2(\omega_p t)+\sin^2(\omega_p t) (n_x^2-n_z^2)]
-```
-
-```math
-\bar{f}(t)=\frac{1}{N}\sum_{p=1}^N f_p(t)
-```
-# Arguments
-- `t`: discrete array marking time 
-- `D`: a set of the coupling strengths
-- `h`: strength of transverse field 
-
-# Options
-- `N`: number of Monte-Carlo sampling
-- `geterr::Bool`: wetehr to return the error of the monte-sampling 
-"""
 function fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:false)
     n=length(D)
     f_sum=zeros(length(t)) # sum
@@ -110,7 +88,7 @@ A=\frac{1}{2}\left(1+b^4t^2/h^2\right)^{1/4},\quad \varphi=\frac{1}{2}\arctan(b^
 # Options
 - `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
 """ 
-function rabi(t::AbstractArray, h::Real, b::Real; axis=3)
+function rabi(t::AbstractVector, h::Real, b::Real; axis=3)
     @assert axis in (1,2,3)
     A=(1.0.+b^4*t.^2/h^2).^(-1/4)/2
     φ=atan.(b^2*t/h)/2
@@ -147,10 +125,10 @@ G(t)=\frac{1}{N}\sum_{p=1}^N g_p(t),\; g=x,y,z
 # Options
 - `N`: size of Monte-Carlo sampling, default at 100
 - `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
-- `returnerr::Bool`: wether to return the variance in sampling
+- `geterr::Bool`: wether to return the variance in sampling
 """
 function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; 
-    N=100::Int, axis=3::Int, returnerr=false)
+    N=100::Int, axis=3::Int, geterr=false)
     @assert axis in (1,2,3)
     n=length(D)
     f_sum=zeros(length(t)) # sum
@@ -163,7 +141,7 @@ function rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real;
         f_sum+=f_p
         f_var+= i>1 ? (i*f_p-f_sum).^2/(i*(i-1)) : f_var
     end
-    if returnerr
+    if geterr
         return (f_sum/N,f_var/(N-1))
     else
         return f_sum/N

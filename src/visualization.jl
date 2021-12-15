@@ -9,7 +9,7 @@ import Distributions: Normal, loglikelihood, fit, pdf, params
 Options used to plot a FID line
 """
 fid_plot_options=:xformatter=>:scientific,
-:xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>:false
+:xlabel=>L"t", :ylabel=>L"$\langle S_x(t) \rangle$",:labels=>false
 
 """
     visualensemble(spin_locs)
@@ -20,7 +20,7 @@ Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJ
 - `spin_locs::Matrix{N,3}`: collections of vectors for `N` spins, in 3 dimension
 """
 
-function visualensemble(spin_locs::Matrix{Float64}; interactive=:true)
+function visualensemble(spin_locs::Matrix{Float64}; interactive=true)
     if interactive
         plotlyjs()
     end
@@ -47,16 +47,16 @@ Visualize a spin ensemble in 3D dimension, return interactive 3D plot in PlotlyJ
 - `FID_curve`: values of FID on the time array `t`
 
 # Options
-- `fitting=:false`: do a exponential curve fitting on the FID, set to `:false` by default
+- `fitting=false`: do a exponential curve fitting on the FID, set to `false` by default
 - `cutoff=1`: number of points to drop at the beginning of fitting 
 - `s=2`: exponential power of the fitting model 
-- `logscale=:false`: display the plot in logscale, set to `false` by default 
+- `logscale=false`: display the plot in logscale, set to `false` by default 
 """
-function visualfid(t::AbstractArray{<:Real}, FID_curve::AbstractArray{<:Real}; 
-    fitting=:false,
+function visualfid(t::AbstractVector{<:Real}, FID_curve::AbstractVector{<:Real}; 
+    fitting=false,
     cutoff=1::Int,
     s=2::Real,
-    logscale=:false)
+    logscale=false)
     
 
     f= logscale ? log.(FID_curve) : FID_curve
@@ -97,8 +97,8 @@ Visualize an array of coupling strengths using histogram
 - `bin_set`: bins in the histogram
 - `logscale`: whether to display the histogram in logscale
 """
-function visualcoupling(sample::AbstractArray{Float64}; 
-    bin_set=:none, logscale=:false)
+function visualcoupling(sample::AbstractVector{Float64}; 
+    bin_set=:none, logscale=false)
     
     if bin_set==:none
         bin_set=range(-20, 20, length = 60)
@@ -107,10 +107,10 @@ function visualcoupling(sample::AbstractArray{Float64};
     if logscale
         fig=histogram(sample, bins = bin_set, xlabel=L"D_j", ylabel=L"\Delta P", 
         yaxis =:log10,
-        norm=true, labels=:false)
+        norm=true, labels=false)
     else
         fig=histogram(sample, bins = bin_set, xlabel=L"D_j", ylabel=L"\Delta P", 
-        norm=true, labels=:false)
+        norm=true, labels=false)
     end
     println("max: ",maximum(sample)," min: ",minimum(sample))
     println("avg: ", mean(sample)," std: ",std(sample))
@@ -131,8 +131,8 @@ Visualize an array of effective magnetic field
 - `use_abs`: whether to use the absolute value of `sample` in the histogram
 - `fitting`: fit the distribution with Gaussian distribution
 """
-function visualeffectivebeta(sample::AbstractArray{Float64};
-    bin_set=-50:2:50, use_abs=:false, fitting=:true)
+function visualeffectivebeta(sample::AbstractVector{Float64};
+    bin_set=-50:2:50, use_abs=false, fitting=true)
     
     if use_abs 
         sample=abs.(sample)

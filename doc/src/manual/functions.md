@@ -21,7 +21,7 @@ fid(t::Real,D::Vector{<:Real})
 ```
 
 ```@docs
-fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=:false)
+fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=false)
 ```
 
 ```@docs
@@ -29,11 +29,11 @@ averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
 ```
 
 ```@docs
-rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int, axis=3::Int, returnerr=:false)
+rabi(t::AbstractVector{<:Real}, D::Vector{<:Real}, h::Real; N=100::Int, axis=3::Int, geterr=false)
 ```
 
 ```@docs
-rabi(t::AbstractArray, h::Real, b::Real; axis=3)
+rabi(t::AbstractVector, h::Real, b::Real; axis=3)
 ```
 
 ```@docs
