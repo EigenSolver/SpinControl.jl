@@ -4,4 +4,5 @@ spins=SpinCluster(ensemble)
 
 
 rabi(spins,100)
-averagerabi(ensemble)
+t=0:0.001:2
+averagerabi(t, ensemble, 10; M=500)

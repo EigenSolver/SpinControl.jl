@@ -28,6 +28,7 @@ include("randloctions.jl")
 include("visualization.jl")
 include("spindynamics.jl")
 include("properties.jl")
+include("dipolarcouplings.jl")
 
 
 """
@@ -161,7 +162,6 @@ function averagerabi(ensemble::SpinEnsemble, h::Real;
 end
 
 mutable struct SpinCluster
-    n::Int
     ensemble::SpinEnsemble
     locations::Matrix{Float64}
     couplings::Vector{Float64}
@@ -190,7 +190,7 @@ end
 
 dipolarlinewidth(spins::SpinCluster)=spins.linewidth # in time computed and stored
 
-dephasingtime(spins::SpinCluster)=π/dipolarlinewidth(spins.D)
+dephasingtime(spins::SpinCluster)=π/spins.linewidth 
 
 function dephasingtime(spins::SpinCluster, n_t::Int; scale=1.0::Real)
     T2=dephasingtime(spins)*scale
@@ -282,7 +282,7 @@ end
 function rabi(spins::SpinCluster, h::Real; 
     N=100::Int, axis=3::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=dephasingtime(spins,n_t; scale=scale)
-    return rabi(t, spins, h; N=N, axis=axis, geterr=geterr)
+    return rabi(t, spins.couplings, h; N=N, axis=axis, geterr=geterr)
 end
 
 end
