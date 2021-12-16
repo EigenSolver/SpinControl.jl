@@ -1,8 +1,6 @@
-ensemble=SpinEnsemble(0.01,3,[0,0,1],0.1,30.0,:spherical)
-
-spins=SpinCluster(ensemble)
-
-
-rabi(spins,100)
-t=0:0.001:2
-rabi(t, ensemble, 10; M=500)
+@testset begin
+    ensemble=SpinEnsemble(0.39486,3,[0,0,1],0.1,10,:spherical)
+    @test abs(coherencetime(ensemble)-1)<0.01
+    fid(ensemble)
+    rabi(ensemble)
+end

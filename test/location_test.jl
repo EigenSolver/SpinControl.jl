@@ -1,7 +1,7 @@
+import LinearAlgebra: norm
 include("../src/randloctions.jl")
 
-@testset begin
-##
+@testset "location generation" begin
     M=randsphericallocs(1000,1,10)
 
     ## Test the datatype
