@@ -25,7 +25,7 @@ fid(t::AbstractVector{<:Real},D::Vector{<:Real},h::Real; N=100::Int, geterr=fals
 ```
 
 ```@docs
-averagefid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
+fid(t::AbstractVector{<:Real}, M::Int, sampling_D::Function)
 ```
 
 ```@docs

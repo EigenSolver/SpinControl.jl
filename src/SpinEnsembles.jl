@@ -13,7 +13,7 @@ import ProgressMeter: @showprogress
 export SpinEnsemble, SpinCluster
 
 # mathods and functions
-export fid, averagefid, rabi, averagerabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
+export fid, fid, rabi, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
 
 include("randloctions.jl")
 include("spindynamics.jl")

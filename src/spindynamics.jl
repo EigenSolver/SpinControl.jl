@@ -76,8 +76,8 @@ end
 
 # dynamics
 @doc raw"""
-    averagefid(t, M, sampling_D; [options]...)
-    averagefid(t, M, sampling_D; [options]...)
+    fid(t, M, sampling_D; [options]...)
+    fid(t, M, sampling_D; [options]...)
 
 Calculate the average free induction decay over different ensembles (disorders) 
 
@@ -91,7 +91,7 @@ Calculate the average free induction decay over different ensembles (disorders)
 - `ensemble`: spin ensemble
 - `sampling_D`: the function to sample over D
 """
-function averagefid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0; M=1000::Int, geterr=false)
+function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0; M=1000::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     @showprogress for i in 1:M
@@ -106,13 +106,13 @@ function averagefid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0; M=1
     end
 end
 
-function averagefid(ensemble::SpinEnsemble;
+function fid(ensemble::SpinEnsemble;
     M=1000::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=relevanttime(ensemble, n_t; scale=scale)
-    return averagefid(t, ensemble; M=M, geterr=geterr)
+    return fid(t, ensemble; M=M, geterr=geterr)
 end
 
-function averagerabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
+function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
     M=1000::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
@@ -128,10 +128,10 @@ function averagerabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real
     end
 end
 
-function averagerabi(ensemble::SpinEnsemble, h::Real; 
+function rabi(ensemble::SpinEnsemble, h::Real; 
     M=1000::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=relevanttime(ensemble, n_t; scale=scale)
-    return averagerabi(t, ensemble, h; M=M, geterr=geterr)
+    return rabi(t, ensemble, h; M=M, geterr=geterr)
 end
 
 # common method
