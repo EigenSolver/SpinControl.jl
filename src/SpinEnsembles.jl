@@ -6,7 +6,7 @@ module SpinEnsembles
 
 using LinearAlgebra
 using Statistics
-import SpecialFunctions: gamma
+import SpecialFunctions: gamma, erfc
 import ProgressMeter: @showprogress
 
 # datetpye
@@ -15,6 +15,8 @@ export volume, isdilute
 
 # mathods and functions
 export fid, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
+
+export analyticalfid, analyticalrabi
 
 include("randloctions.jl")
 include("dipolarcouplings.jl")
@@ -173,5 +175,6 @@ function reroll!(cluster::SpinCluster)
 end
 
 include("spindynamics.jl")
+include("analytics.jl")
 
 end
