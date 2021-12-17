@@ -53,10 +53,11 @@ function analyticalrabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::R
     end
 end
 
-function analyticalfid(t::AbstractVector{Float64}, ensemble::SpinEnsemble)
+function analyticalfid(t::AbstractVector{Float64}, ensemble::SpinEnsemble;
+     spin=1/2::Real)
     @assert isdilute(ensemble)
 
     dim=ensemble.dim
     T2=coherencetime(ensemble)
-    return exp.(-(abs.(t/T2).^(1/dim)))
+    return spin*exp.(-(abs.(t/T2).^(dim/3)))
 end

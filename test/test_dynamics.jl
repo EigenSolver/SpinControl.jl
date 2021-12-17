@@ -12,16 +12,39 @@ import Statistics: mean, std
     the_curve=analyticalrabi(t,ensemble,h)
     mc_curve=rabi(t, ensemble, h; M=400, N=500)
 
-    rabi_error=abs.(mc_curve-the_curve)
-    avg_err=mean(rabi_error); std_err=std(rabi_error);
+    error=abs.(mc_curve-the_curve)
+    avg_err=mean(error); std_err=std(error);
     
-    scatter(t,mc_curve,labels="Numerical", fmt = :png)
+    scatter(t,mc_curve,labels="Numerical", 
+    fmt = :png, title="Rabi Oscillation", 
+    xlabel="t",
+    ylabel="f(t)")
     plot!(t, the_curve,labels="Analytical",linestyle=:dash)
     savefig("./.figs/rabi_test.png")
 
     println("mean error: ", avg_err)
     println("std error: ", std_err)
     @test avg_err<0.01
-    @test std_err<0.1
-    # fid(ensemble)
+    @test std_err<0.01
+
+    dt=T2/200; 
+    t=0:dt:T2
+    println("generating free induction decay curve...")
+    the_curve=analyticalfid(t,ensemble)
+    mc_curve=fid(t, ensemble; M=400, N=500)
+
+    error=abs.(mc_curve-the_curve)
+    avg_err=mean(error); std_err=std(error);
+    
+    scatter(t,mc_curve,labels="Numerical", 
+    fmt = :png, title="Free Induction Decay", 
+    xlabel="t",
+    ylabel="f(t)")
+    plot!(t, the_curve,labels="Analytical",linestyle=:dash)
+    savefig("./.figs/fid_test.png")
+
+    println("mean error: ", avg_err)
+    println("std error: ", std_err)
+    @test avg_err<0.01
+    @test std_err<0.01    
 end
