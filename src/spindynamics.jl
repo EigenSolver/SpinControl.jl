@@ -15,13 +15,16 @@ Calculate the average free induction decay over different ensembles (disorders)
 - `ensemble`: spin ensemble
 - `sampling_D`: the function to sample over D
 """
-function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0; M=1000::Int, geterr=false)
+function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0::Real; 
+    M=1000::Int, N=100::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
+    cluster=SpinCluster(ensemble)
     @showprogress for i in 1:M
-        f_d=fid(t, dipolarcoefs(randlocs(ensemble), h))
+        f_d=fid(t, cluster, h; N=N)
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
+        reroll!(cluster)
     end
     if geterr
         return f_sum/M, f_var/(M-1)
@@ -30,20 +33,22 @@ function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0; M=1000::In
     end
 end
 
-function fid(ensemble::SpinEnsemble;
-    M=1000::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
+function fid(ensemble::SpinEnsemble, h=0::Real;
+    M=1000::Int, N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=relevanttime(ensemble, n_t; scale=scale)
-    return fid(t, ensemble; M=M, geterr=geterr)
+    return fid(t, ensemble, h; M=M, N=N, geterr=geterr)
 end
 
 function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
-    M=1000::Int, geterr=false)
+    M=1000::Int, N=100::Int, axis=3::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
+    cluster=SpinCluster(ensemble)
     @showprogress for i in 1:M
-        f_d=rabi(t, randcoefs(ensemble), h)
+        f_d=rabi(t, cluster, h; N=N, axis=axis)
         f_sum+=f_d
         f_var+= i>1 ? (i*f_d-f_sum).^2/(i*(i-1)) : f_var
+        reroll!(cluster)
     end
     if geterr
         return f_sum/M, f_var/(M-1)
@@ -53,9 +58,9 @@ function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
 end
 
 function rabi(ensemble::SpinEnsemble, h::Real; 
-    M=1000::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
+    M=1000::Int, n_t=200::Int, scale=1.0::Real, N=100::Int, axis=3::Int, geterr=false)
     t=relevanttime(ensemble, n_t; scale=scale)
-    return rabi(t, ensemble, h; M=M, geterr=geterr)
+    return rabi(t, ensemble, h; M=M, N=N, axis=axis, geterr=geterr)
 end
 
 # common method

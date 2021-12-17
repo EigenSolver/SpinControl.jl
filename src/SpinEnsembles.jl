@@ -11,12 +11,12 @@ import ProgressMeter: @showprogress
 
 # datetpye
 export SpinEnsemble, SpinCluster
+export volume, isdilute
 
 # mathods and functions
-export fid, fid, rabi, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
+export fid, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
 
 include("randloctions.jl")
-include("spindynamics.jl")
 include("dipolarcouplings.jl")
 
 
@@ -98,22 +98,14 @@ mutable struct SpinCluster
     ensemble::SpinEnsemble
     locations::Matrix{Float64}
     couplings::Vector{Float64}
-    linewidth::Float64
+    #ρ::Matrix{Float64}
 
     function SpinCluster(ensemble::SpinEnsemble)
         locs=randlocs(ensemble)
         D=dipolarcoefs(locs)
-        cluster=new(ensemble, locs, D)
-        cluster.linewidth=dipolarlinewidth(cluster)
+        return new(ensemble, locs, D)
         return cluster
     end 
-
-    function SpinCluster(locations::Matrix{Float64})
-        D=dipolarcoefs(locations); 
-        cluster=new(missing, locations, D)
-        cluster.linewidth=dipolarlinewidth(cluster)
-        return cluster
-    end
 end
 
 isdilute(cluster::SpinCluster)=cluster.ensemble.rho<1
@@ -134,10 +126,8 @@ Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 - `N`: size of Monte-Carlo sampling
 """
 function betasampling(cluster::SpinCluster; N=1::Int)
-    return [sum(rand([1,-1],n).*cluster.couplings) for i in 1:N]
+    return [sum(rand([1,-1],cluster.ensemble.n).*cluster.couplings) for i in 1:N]
 end
-
-
 
 @doc raw"""
     dipolarlinewidth(cluster)
@@ -181,5 +171,7 @@ function reroll!(cluster::SpinCluster)
     cluster.locations=randlocs(cluster.ensemble)
     cluster.couplings=dipolarcoefs(cluster.locations)
 end
+
+include("spindynamics.jl")
 
 end
