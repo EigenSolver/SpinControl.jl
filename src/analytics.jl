@@ -23,7 +23,7 @@ function analyticalrabi(t::AbstractVector, cluster::SpinCluster, h::Real;
 
     @assert axis in (1,2,3)
     b=dipolarlinewidth(cluster)
-    A=(1.0.+b^4*t.^2/h^2).^(-1/4)/2
+    A=(1.0.+b^4*t.^2/h^2).^(-1/4)
     φ=atan.(b^2*t/h)/2
     F=spin*A.*exp.(-im*h*t+φ)
 

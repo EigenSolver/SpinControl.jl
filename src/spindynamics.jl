@@ -59,7 +59,7 @@ end
 
 function rabi(ensemble::SpinEnsemble, h::Real; 
     M=1000::Int, n_t=200::Int, scale=1.0::Real, N=100::Int, axis=3::Int, geterr=false)
-    t=relevanttime(ensemble, n_t; scale=scale)
+    T2=coherencetime(spins)*scale
     return rabi(t, ensemble, h; M=M, N=N, axis=axis, geterr=geterr)
 end
 
