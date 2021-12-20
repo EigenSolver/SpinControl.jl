@@ -16,7 +16,7 @@ Calculate the average free induction decay over different ensembles (disorders)
 - `sampling_D`: the function to sample over D
 """
 function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0::Real; 
-    M=1000::Int, N=100::Int, geterr=false)
+    M=200::Int, N=100::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     cluster=SpinCluster(ensemble)
@@ -34,13 +34,13 @@ function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0::Real;
 end
 
 function fid(ensemble::SpinEnsemble, h=0::Real;
-    M=1000::Int, N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
+    M=200::Int, N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
     t=relevanttime(ensemble, n_t; scale=scale)
     return fid(t, ensemble, h; M=M, N=N, geterr=geterr)
 end
 
 function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
-    M=1000::Int, N=100::Int, axis=3::Int, geterr=false)
+    M=200::Int, N=100::Int, axis=3::Int, geterr=false)
     f_sum=zeros(length(t))
     f_var=copy(f_sum)
     cluster=SpinCluster(ensemble)
@@ -58,7 +58,7 @@ function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
 end
 
 function rabi(ensemble::SpinEnsemble, h::Real; 
-    M=1000::Int, n_t=200::Int, scale=1.0::Real, N=100::Int, axis=3::Int, geterr=false)
+    M=200::Int, n_t=200::Int, scale=1.0::Real, N=100::Int, axis=3::Int, geterr=false)
     T2=coherencetime(spins)*scale
     return rabi(t, ensemble, h; M=M, N=N, axis=axis, geterr=geterr)
 end
