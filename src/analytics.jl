@@ -25,12 +25,12 @@ function analyticalrabi(t::AbstractVector, cluster::SpinCluster, h::Real;
     b=dipolarlinewidth(cluster)
     A=(1.0.+b^4*t.^2/h^2).^(-1/4)
     φ=atan.(b^2*t/h)/2
-    F=spin*A.*exp.(-im*h*t+φ)
+    F=spin*A.*exp.(im*(h*t+φ))
 
     if axis==3
         return real(F) 
     elseif axis==2
-        return imag(F)
+        return -imag(F)
     elseif axis==1
         return zeros(length(t))
     end
@@ -47,7 +47,7 @@ function analyticalrabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::R
     if axis==3
         return real(F)
     elseif axis==2
-        return imag(F)
+        return -imag(F)
     else
         return zeros(length(t))
     end
