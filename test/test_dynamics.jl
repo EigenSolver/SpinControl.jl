@@ -24,8 +24,8 @@ import Statistics: mean, std
 
     println("mean error: ", avg_err)
     println("std error: ", std_err)
-    @test avg_err<0.01
-    @test std_err<0.01
+    @test avg_err<0.02
+    @test std_err<0.02
 end
 
 @testset "ensemble average dynamics" begin
