@@ -1,23 +1,33 @@
 import Statistics: mean, std
 
-@testset "cluster dynamics" begin
-    ensemble=SpinEnsemble(0.39486,3,[0,0,1],0.1,10,:spherical)
-    cluster=SpinCluster(ensemble)
-    
-    h=40
-    T2=coherencetime(cluster)
-    t=0:π/(20*h):T2
-    println("generating rabi oscillation curve...")
-    the_curve=analyticalrabi(t, cluster, h)
-    mc_curve=rabi(t, cluster, h; N=500)
+function testcurve(the_curve::Vector{Float64}, mc_curve::Vector{Float64}; 
+    avg_bound=0.02::Real, std_bound=0.02::Real)
 
     error=abs.(mc_curve-the_curve)
     avg_err=mean(error); std_err=std(error);
 
     println("mean error: ", avg_err)
     println("std error: ", std_err)
-    @test avg_err<0.02
-    @test std_err<0.02
+    @test avg_err<avg_bound
+    @test std_err<std_bound
+end
+
+@testset "cluster dynamics" begin
+    ensemble=SpinEnsemble(0.39486,3,[0,0,1],0.1,10,:spherical)
+    cluster=SpinCluster(ensemble)
+    N=500
+    h=40
+    T2=coherencetime(cluster)
+    t=0:π/(20*h):T2
+    
+    println("testing cluster rabi oscillation curve Sz...")
+    testcurve(analyticalrabi(t, cluster, h), rabi(t, cluster, h; N=N))
+
+    println("testing cluster rabi oscillation curve Sy...")
+    testcurve(analyticalrabi(t, cluster, h, axis=2), rabi(t, cluster, h; N=N, axis=2))
+
+    println("testing cluster rabi oscillation curve Sx...")
+    testcurve(analyticalrabi(t, cluster, h, axis=1), rabi(t, cluster, h; N=N, axis=1))    
 end
 
 @testset "ensemble average dynamics" begin
@@ -25,43 +35,22 @@ end
     T2=coherencetime(ensemble)
     @test abs(T2-1)<0.001
     h=50; dt=π/(h*20); 
-    t=0:dt:T2
+    t=0:dt:T2;
+    M=600;N=500;
 
-    println("generating rabi oscillation curve Sz...")
-    the_curve=analyticalrabi(t,ensemble,h)
-    mc_curve=rabi(t, ensemble, h; M=400, N=500)
+    println("testing ensemble rabi oscillation curve Sz...")
+    testcurve(analyticalrabi(t,ensemble,h), rabi(t, ensemble, h; M=M, N=N))
 
-    error=abs.(mc_curve-the_curve)
-    avg_err=mean(error); std_err=std(error);
 
-    println("mean error: ", avg_err)
-    println("std error: ", std_err)
-    @test avg_err<0.02
-    @test std_err<0.02
+    println("testing ensemble rabi oscillation curve Sy...")
+    testcurve(analyticalrabi(t,ensemble,h, axis=2), rabi(t, ensemble, h; axis=2, M=M, N=N))
 
-    println("generating rabi oscillation curve Sy...")
-    the_curve=analyticalrabi(t,ensemble,h, axis=2)
-    mc_curve=rabi(t, ensemble, h; M=400, N=500, axis=2)
 
-    error=abs.(mc_curve-the_curve)
-    avg_err=mean(error); std_err=std(error);
-    
-    println("mean error: ", avg_err)
-    println("std error: ", std_err)
-    @test avg_err<0.02
-    @test std_err<0.02
+    println("testing ensemble rabi oscillation curve Sx...")
+    testcurve(analyticalrabi(t,ensemble,h, axis=1), rabi(t, ensemble, h; axis=1, M=M, N=N))
 
     dt=T2/200; 
     t=0:dt:T2
-    println("generating free induction decay curve...")
-    the_curve=analyticalfid(t,ensemble)
-    mc_curve=fid(t, ensemble; M=400, N=500)
-
-    error=abs.(mc_curve-the_curve)
-    avg_err=mean(error); std_err=std(error);
-    
-    println("mean error: ", avg_err)
-    println("std error: ", std_err)
-    @test avg_err<0.02
-    @test std_err<0.02    
+    println("testing ensemble free induction decay curve...")
+    testcurve(analyticalfid(t,ensemble), fid(t, ensemble; M=M, N=N))
 end
