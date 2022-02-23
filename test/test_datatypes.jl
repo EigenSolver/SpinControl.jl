@@ -1,4 +1,4 @@
-import SpinEnsembles: reroll!
+import SpinControl.SpinEnsembles: reroll!
 
 @testset "spin ensemble" begin
     ensemble=SpinEnsemble(1000,3,[1,1,0],3,5, :spherical)

@@ -1,6 +1,6 @@
 using Test
-using SpinEnsembles
+using SpinControl
 
-# include("test_locations.jl")
-# include("test_datatypes.jl")
+include("test_locations.jl")
+include("test_datatypes.jl")
 include("test_dynamics.jl")

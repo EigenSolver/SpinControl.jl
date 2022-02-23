@@ -1,6 +1,5 @@
 import LinearAlgebra: norm
-import SpinEnsembles: randlocs, randcoefs, dipolarcoefs
-include("../src/randloctions.jl")
+import SpinControl.SpinEnsembles: randlocs, randsphericallocs, randcartesianlocs, randcoefs, dipolarcoefs
 
 @testset "location generation" begin
     M=randsphericallocs(1000,1,10)
