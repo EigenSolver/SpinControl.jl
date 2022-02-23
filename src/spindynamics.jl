@@ -1,3 +1,9 @@
+# common method
+function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale=1.0::Real)
+    T2=coherencetime(spins)*scale
+    return 0:T2/n_t:T2 
+end
+
 # dynamics
 @doc raw"""
     fid(t, M, sampling_D; [options]...)
@@ -33,11 +39,6 @@ function fid(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h=0::Real;
     end
 end
 
-function fid(ensemble::SpinEnsemble, h=0::Real;
-    M=200::Int, N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
-    t=relevanttime(ensemble, n_t; scale=scale)
-    return fid(t, ensemble, h; M=M, N=N, geterr=geterr)
-end
 
 function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
     M=200::Int, N=100::Int, axis=3::Int, geterr=false)
@@ -57,17 +58,6 @@ function rabi(t::AbstractVector{Float64}, ensemble::SpinEnsemble, h::Real;
     end
 end
 
-function rabi(ensemble::SpinEnsemble, h::Real; 
-    M=200::Int, n_t=200::Int, scale=1.0::Real, N=100::Int, axis=3::Int, geterr=false)
-    T2=coherencetime(spins)*scale
-    return rabi(t, ensemble, h; M=M, N=N, axis=axis, geterr=geterr)
-end
-
-# common method
-function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale=1.0::Real)
-    T2=coherencetime(spins)*scale
-    return 0:T2/n_t:T2 
-end
 
 @doc raw"""
     fid(t, D, h; N)
@@ -124,11 +114,6 @@ function fid(t::AbstractVector{Float64}, cluster::SpinCluster,h=0::Real;
     end
 end
 
-function fid(cluster::SpinCluster,h=0::Real; 
-    N=100::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
-    t=relevanttime(cluster,n_t; scale=scale)
-    fid(t, cluster, h; N=N, geterr=geterr)
-end
 
 @doc raw"""
     rabi(t, D, h; N, options...)
@@ -180,12 +165,6 @@ function rabi(t::AbstractVector{Float64}, cluster::SpinCluster, h::Real;
     end
 end
 
-function rabi(cluster::SpinCluster, h::Real; 
-    N=100::Int, axis=3::Int, n_t=200::Int, scale=1.0::Real, geterr=false)
-    t=relevanttime(cluster,n_t; scale=scale)
-    @assert (t[2]-t[1])<π/(20*h)
-    return rabi(t, cluster, h; N=N, axis=axis, geterr=geterr)    
-end
 
 function _rabiz(t::AbstractVector{<:Real},β::Real,h::Real)
     ω=sqrt(h^2+β^2)/2
