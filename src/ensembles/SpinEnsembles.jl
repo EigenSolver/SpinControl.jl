@@ -5,7 +5,6 @@ quantum decoherence in disordered spin ensembles.
 module SpinEnsembles
 
 using LinearAlgebra
-using Statistics
 import SpecialFunctions: gamma, erfc
 import ProgressMeter: @showprogress
 
@@ -43,28 +42,34 @@ struct SpinEnsemble
     R::Float64
     shape::Symbol
 
-    function SpinEnsemble(n_or_rho::Union{Int,Float64},dim::Int,z0::AbstractVector{<:Real},
-        r::Real, R::Real, shape=:spherical::Symbol)
-        @assert n_or_rho>0
-        @assert dim in (1,2,3)
+    function SpinEnsemble(
+        n_or_rho::Union{Int,Float64},
+        dim::Int,
+        z0::AbstractVector{<:Real},
+        r::Real,
+        R::Real,
+        shape = :spherical::Symbol,
+    )
+        @assert n_or_rho > 0
+        @assert dim in (1, 2, 3)
         @assert shape in (:spherical, :cubic)
-        V=_volume(dim, r, R, shape)
+        V = _volume(dim, r, R, shape)
         if n_or_rho isa Int
-            n=n_or_rho
-            rho=n/V
+            n = n_or_rho
+            rho = n / V
         elseif n_or_rho isa Float64
-            rho=n_or_rho
-            n=floor(Int, rho*V)
+            rho = n_or_rho
+            n = floor(Int, rho * V)
         end
-        return new(n,rho,dim,normalize(z0),float(r),float(R),shape)  
+        return new(n, rho, dim, normalize(z0), float(r), float(R), shape)
     end
 end
 
 function _volume(dim::Int, r::Real, R::Real, shape::Symbol)
-    if shape==:spherical
-        V=((2*(R-r)),(π*(R^2-r^2)),(4π/3*(R^3-r^3)))[dim]
-    elseif shape==:cubic
-        V=((2*(R-r)),(4*(R^2-r^2)),(8*(R^3-r^3)))[dim]
+    if shape == :spherical
+        V = ((2 * (R - r)), (π * (R^2 - r^2)), (4π / 3 * (R^3 - r^3)))[dim]
+    elseif shape == :cubic
+        V = ((2 * (R - r)), (4 * (R^2 - r^2)), (8 * (R^3 - r^3)))[dim]
     end
     return V
 end
@@ -75,21 +80,21 @@ end
 
 
 # methods & properties
-isdilute(ensemble::SpinEnsemble)=ensemble.rho<1
-randlocs(ensemble::SpinEnsemble)=randlocs(ensemble.n, ensemble.dim, (ensemble.r,ensemble.R);
- method=ensemble.shape)
-randcoefs(ensemble::SpinEnsemble)=dipolarcoefs(randlocs(ensemble))
+isdilute(ensemble::SpinEnsemble) = ensemble.rho < 1
+randlocs(ensemble::SpinEnsemble) =
+    randlocs(ensemble.n, ensemble.dim, (ensemble.r, ensemble.R); method = ensemble.shape)
+randcoefs(ensemble::SpinEnsemble) = dipolarcoefs(randlocs(ensemble))
 
 function coherencetime(ensemble::SpinEnsemble)
     if isdilute(ensemble)
-        if ensemble.dim==3
-            return 6/(ensemble.rho*π^2)*(3*sqrt(3))/8
-        elseif ensemble.dim==2
-            return 2*(ensemble.rho*π/2*gamma(1/3))^(-3/2)
-        elseif ensemble.dim==1
-            return -2*(ensemble.rho/sqrt(3)*gamma(-1/3))^(-3)
+        if ensemble.dim == 3
+            return 6 / (ensemble.rho * π^2) * (3 * sqrt(3)) / 8
+        elseif ensemble.dim == 2
+            return 2 * (ensemble.rho * π / 2 * gamma(1 / 3))^(-3 / 2)
+        elseif ensemble.dim == 1
+            return -2 * (ensemble.rho / sqrt(3) * gamma(-1 / 3))^(-3)
         else
-            throw(DomainError(ensemble.dim,"Invalide ensemble dimension."))
+            throw(DomainError(ensemble.dim, "Invalide ensemble dimension."))
         end
     else
         throw(DomainError("Ensemble is non-dilute"))
@@ -103,14 +108,14 @@ mutable struct SpinCluster
     #ρ::Matrix{Float64}
 
     function SpinCluster(ensemble::SpinEnsemble)
-        locs=randlocs(ensemble)
-        D=dipolarcoefs(locs)
+        locs = randlocs(ensemble)
+        D = dipolarcoefs(locs)
         return new(ensemble, locs, D)
         return cluster
-    end 
+    end
 end
 
-isdilute(cluster::SpinCluster)=cluster.ensemble.rho<1
+isdilute(cluster::SpinCluster) = cluster.ensemble.rho < 1
 
 @doc raw"""
     betasampling(cluster; N)
@@ -127,8 +132,8 @@ Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 # Options
 - `N`: size of Monte-Carlo sampling
 """
-function betasampling(cluster::SpinCluster; N=1::Int)
-    return [sum(rand([1,-1],cluster.ensemble.n).*cluster.couplings) for i in 1:N]
+function betasampling(cluster::SpinCluster; N = 1::Int)
+    return [sum(rand([1, -1], cluster.ensemble.n) .* cluster.couplings) for i = 1:N]
 end
 
 @doc raw"""
@@ -142,7 +147,7 @@ b=\sqrt{\sum_j D_j^2}
 # Arguments
 - `D`: coupling strength of dipolar interactions, a array of floats
 """
-dipolarlinewidth(cluster::SpinCluster)=sqrt(mapreduce(abs2,+,cluster.couplings)) # in time computed and stored
+dipolarlinewidth(cluster::SpinCluster) = sqrt(mapreduce(abs2, +, cluster.couplings)) # in time computed and stored
 
 
 @doc raw"""
@@ -164,14 +169,14 @@ T_2=\frac{\pi}{b}
 # Options 
 - `scale`: scale factor to extend the T_2 
 """
-coherencetime(cluster::SpinCluster)=π/dipolarlinewidth(cluster)
+coherencetime(cluster::SpinCluster) = π / dipolarlinewidth(cluster)
 
 """
 Reroll the points in the cluster
 """
 function reroll!(cluster::SpinCluster)
-    cluster.locations=randlocs(cluster.ensemble)
-    cluster.couplings=dipolarcoefs(cluster.locations)
+    cluster.locations = randlocs(cluster.ensemble)
+    cluster.couplings = dipolarcoefs(cluster.locations)
 end
 
 include("spindynamics.jl")
