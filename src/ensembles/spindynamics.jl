@@ -1,5 +1,5 @@
 # common method
-function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale = 1.0::Real)
+function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale::Real = 1.0)
     T2 = coherencetime(spins) * scale
     return 0:T2/n_t:T2
 end
@@ -24,10 +24,10 @@ Calculate the average free induction decay over different ensembles (disorders)
 function fid(
     t::AbstractVector{Float64},
     ensemble::SpinEnsemble,
-    h = 0::Real;
-    M = 200::Int,
-    N = 100::Int,
-    geterr = false,
+    h::Real = 0;
+    M::Int = 200,
+    N::Int = 100,
+    geterr::Bool = false,
 )
     f_sum = zeros(length(t))
     f_var = copy(f_sum)
@@ -50,10 +50,10 @@ function rabi(
     t::AbstractVector{Float64},
     ensemble::SpinEnsemble,
     h::Real;
-    M = 200::Int,
-    N = 100::Int,
-    axis = 3::Int,
-    geterr = false,
+    M::Int = 200,
+    N::Int = 100,
+    axis::Int = 3,
+    geterr::Bool = false,
 )
     f_sum = zeros(length(t))
     f_var = copy(f_sum)
@@ -104,9 +104,9 @@ f(t)=\frac{1}{2}\prod_j \cos(D_jt)
 function fid(
     t::AbstractVector{Float64},
     cluster::SpinCluster,
-    h = 0::Real;
-    N = 100::Int,
-    geterr = false,
+    h::Real = 0;
+    N::Int = 100,
+    geterr::Bool = false,
 )
     D = cluster.couplings
 
@@ -164,9 +164,9 @@ function rabi(
     t::AbstractVector{Float64},
     cluster::SpinCluster,
     h::Real;
-    N = 100::Int,
-    axis = 3::Int,
-    geterr = false,
+    N::Int = 100,
+    axis::Int = 3,
+    geterr::Bool = false,
 )
     @assert axis in (1, 2, 3)
 
@@ -206,3 +206,20 @@ function _rabix(t::AbstractVector{<:Real}, β::Real, h::Real)
     sin2 = sin.(ω * t) .^ 2
     return sin2 * (β * h) / (h^2 + β^2)
 end
+
+    
+function evolution(h::Real, t::Real, cluster::SpinCluster, aim::Vector{<:Real}=[1,0,0]; 
+    N::Int=100, get_unitary::Bool=true)
+    normalize!(aim)
+    z0=cluster.ensemble.z0
+    β_p = betasampling(cluster, N)
+    vec_n= β_p.*z0' .+ h*aim'
+    ω_p = sqrt.(sum(abs2, vec_n, dims=2))
+    ω=mean(ω_p)
+    n=sum(vec_n, dims=1)
+    if get_unitary
+        return *σ_i
+    else
+        return ω_p
+    end
+end 

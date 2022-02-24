@@ -22,7 +22,7 @@ end
     ensemble = SpinEnsemble(1000, 3, [1, 1, 0], 3, 5, :spherical)
     cluster = SpinCluster(ensemble)
     @test dipolarlinewidth(cluster) isa Real
-    @test betasampling(cluster; N = 100) isa Vector{Float64}
+    @test betasampling(cluster, 100) isa Vector{Float64}
     @test coherencetime(cluster) == π / dipolarlinewidth(cluster)
     reroll!(cluster)
 end
