@@ -1,18 +1,15 @@
-using Documenter, SpinEnsembles
+using Documenter, SpinControl
 
-Manual = [
-    "Function" => "manual/functions.md",
-    "Test" => "manual/manual.md",
-]
+Manual = ["Function" => "manual/functions.md", "Test" => "manual/manual.md"]
 
 makedocs(
-    sitename = "SpinEnsembles",
+    sitename = "SpinControl",
     authors = "Yuning Zhang",
-    pages = [
-        "Home" => "index.md",
-        "Manual" => Manual,
-])
+    pages = ["Home" => "index.md", "Manual" => Manual],
+)
 
-deploydocs(repo="https://github.com/Neuromancer43/SpinEnsembles.jl.git",
-target = "build",
-push_preview = true)
+deploydocs(
+    repo = "https://github.com/Neuromancer43/SpinControl.jl.git",
+    target = "build",
+    push_preview = true,
+)
