@@ -208,19 +208,15 @@ function _rabix(t::AbstractVector{<:Real}, β::Real, h::Real)
 end
 
     
-function evolution(h::Real, t::Real, cluster::SpinCluster, aim::Vector{<:Real}=[1,0,0]; 
-    N::Int=100, get_unitary::Bool=true)
+function driving(h::Real, t::Real, cluster::SpinCluster, 
+    aim::Vector{<:Real}=[1,0,0]; N::Int=100,)
     normalize!(aim)
     z0=cluster.ensemble.z0
     β_p = betasampling(cluster, N)
     n_p= β_p.*z0' .+ h*aim'
     ω_p = sqrt.(sum(abs2, n_p, dims=2))
-    ω=mean(ω_p)
-    n=sum(n_p, dims=1)/N
+    ω=sum(ω_p)/N
+    n=vec(sum(n_p, dims=1))/N
 
-    if get_unitary
-        return cos.(ω*t)*σ_i+sin(ω*t)*sum([n[i]*σ_vec[i] for i in 1:3])
-    else
-        return ω*t,n
-    end
+    return ω*t, n
 end 

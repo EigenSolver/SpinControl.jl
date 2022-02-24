@@ -13,7 +13,7 @@ export SpinEnsemble, SpinCluster
 export volume, isdilute
 
 # mathods and functions
-export evolution, fid, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
+export driving, fid, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
 
 export analyticalfid, analyticalrabi
 
