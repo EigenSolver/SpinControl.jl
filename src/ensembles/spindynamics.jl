@@ -213,13 +213,14 @@ function evolution(h::Real, t::Real, cluster::SpinCluster, aim::Vector{<:Real}=[
     normalize!(aim)
     z0=cluster.ensemble.z0
     β_p = betasampling(cluster, N)
-    vec_n= β_p.*z0' .+ h*aim'
-    ω_p = sqrt.(sum(abs2, vec_n, dims=2))
+    n_p= β_p.*z0' .+ h*aim'
+    ω_p = sqrt.(sum(abs2, n_p, dims=2))
     ω=mean(ω_p)
-    n=sum(vec_n, dims=1)
+    n=sum(n_p, dims=1)/N
+
     if get_unitary
-        return *σ_i
+        return cos.(ω*t)*σ_i+sin(ω*t)*sum([n[i]*σ_vec[i] for i in 1:3])
     else
-        return ω_p
+        return ω*t,n
     end
 end 
