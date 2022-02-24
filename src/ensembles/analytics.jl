@@ -18,7 +18,7 @@ A=\frac{1}{2}\left(1+b^4t^2/h^2\right)^{1/4},\quad \varphi=\frac{1}{2}\arctan(b^
 # Options
 - `axis::Int`: , 1,2,3, representing x,y,z axis, set to 3 by default 
 """
-function analyticalrabi(t::AbstractVector, cluster::SpinCluster, h::Real; axis = 3::Int)
+function analyticalrabi(t::AbstractVector, cluster::SpinCluster, h::Real; axis::Int = 3)
 
     @assert axis in (1, 2, 3)
     b = dipolarlinewidth(cluster)
@@ -38,7 +38,7 @@ function analyticalrabi(
     t::AbstractVector{Float64},
     ensemble::SpinEnsemble,
     h::Real;
-    axis = 3::Int,
+    axis::Int = 3,
 )
     @assert axis in (1, 2, 3)
     @assert isdilute(ensemble)
@@ -59,12 +59,11 @@ end
 
 function analyticalfid(
     t::AbstractVector{Float64},
-    ensemble::SpinEnsemble;
-    spin = 1 / 2::Real,
+    ensemble::SpinEnsemble
 )
     @assert isdilute(ensemble)
 
     dim = ensemble.dim
     T2 = coherencetime(ensemble)
-    return spin * exp.(-(abs.(t / T2) .^ (dim / 3)))
+    return 1 / 2 * exp.(-(abs.(t / T2) .^ (dim / 3)))
 end

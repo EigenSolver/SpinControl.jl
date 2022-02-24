@@ -13,7 +13,7 @@ Generate `n` random location vectors distributed in a 3D cube, scaled by a at ra
 # Options
 - `dim`: dimension of the space
 """
-function randcartesianlocs(n::Int, a::Real, b::Real; dim = 3::Int)
+function randcartesianlocs(n::Int, a::Real, b::Real; dim::Int = 3)
     @assert dim <= 3
 
     M = zeros(n, 3)
@@ -28,7 +28,7 @@ function randcartesianlocs(n::Int, a::Real, b::Real; dim = 3::Int)
     M
 end
 
-function randcartesianlocs(n::Int, R::Real; dim = 3::Int)
+function randcartesianlocs(n::Int, R::Real; dim::Int = 3)
     @assert dim <= 3
     M = zeros(n, 3)
     rand!(@view(M[:, 1:dim]))
@@ -47,7 +47,7 @@ return a matrix of size (n,3), n random location vectors distributed in a 3D sph
 - `r_max`: upper bound of sampling radius
 - `n`: numer of locations 
 """
-function randsphericallocs(n::Int, r_min = 0.0::Real, r_max = 1.0::Real)
+function randsphericallocs(n::Int, r_min::Real = 0.0, r_max::Real = 1.0)
     M = zeros(n, 3)
     r = cbrt.(rand(n) .* (r_max^3 - r_min^3) .+ r_min^3)
     ϕ = rand(n) .* 2pi
@@ -71,7 +71,7 @@ return a matrix of size (n,3), n random location vectors distributed in a 3D sph
 - `r_min`: lower bound of sampling radius
 - `r_max`: upper bound of sampling radius
 """
-function randpolarlocs(n::Int, r_min = 0.0::Real, r_max = 1.0::Real)
+function randpolarlocs(n::Int, r_min::Real = 0.0, r_max::Real = 1.0)
     M = zeros(n, 3)
     r = sqrt.(rand(n) .* (r_max^2 - r_min^2) .+ r_min^2)
     ϕ = rand(n) .* 2pi
@@ -99,7 +99,7 @@ totally `n` spins are uniformly distributed in a `dim` dimensional cubic space w
 # Options
 - `method`: constant, `:spherical` for spherical coordinates or `:cubic` for Cartesian coordinates
 """
-function randlocs(n::Int, dim::Int, bound::Tuple{Real,Real}; method = :cubic)
+function randlocs(n::Int, dim::Int, bound::Tuple{Real,Real}; method::Symbol = :cubic)
     @assert dim > 0 && dim < 4
     @assert method in (:spherical, :cubic)
     a, b = bound
@@ -120,5 +120,5 @@ function randlocs(n::Int, dim::Int, bound::Tuple{Real,Real}; method = :cubic)
     return locs
 end
 
-randlocs(n::Int, dim::Int, R = 1::Real; method = :cubic) =
+randlocs(n::Int, dim::Int, R::Real = 1; method::Symbol = :cubic) =
     randlocs(n, dim, (0, R); method = method)

@@ -26,7 +26,7 @@ Get a list of dipolar coupling strength between the centered spin and bath
 - `locs`: an array of vector, distance from the central spin to the spins in bath 
 - `z0`: the direction of external field, set to z axis by default
 """
-function dipolarcoefs(locs::Matrix{<:Real}, z0 = [0, 0, 1.0]::AbstractVector{<:Real})
+function dipolarcoefs(locs::Matrix{<:Real}, z0::AbstractVector{<:Real} = [0, 0, 1.0])
     normalize!(z0)
     return [dipolarcoef(loc, z0) for loc in eachrow(locs)]
 end

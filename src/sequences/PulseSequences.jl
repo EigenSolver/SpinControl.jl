@@ -1,7 +1,5 @@
 module PulseSequences
 
-include("../operators.jl")
-
 struct SquarePulse
     h::Real
     t::Real
@@ -19,6 +17,5 @@ struct SquarePulse
         return new(h, t, aim, phi, U)
     end
 end
-
 
 end

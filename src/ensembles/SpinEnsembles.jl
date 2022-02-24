@@ -48,7 +48,7 @@ struct SpinEnsemble
         z0::AbstractVector{<:Real},
         r::Real,
         R::Real,
-        shape = :spherical::Symbol,
+        shape::Symbol = :spherical,
     )
         @assert n_or_rho > 0
         @assert dim in (1, 2, 3)
@@ -118,7 +118,7 @@ end
 isdilute(cluster::SpinCluster) = cluster.ensemble.rho < 1
 
 @doc raw"""
-    betasampling(cluster; N)
+    betasampling(cluster, N)
 
 Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 
@@ -132,7 +132,7 @@ Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 # Options
 - `N`: size of Monte-Carlo sampling
 """
-function betasampling(cluster::SpinCluster; N = 1::Int)
+function betasampling(cluster::SpinCluster, N::Int = 1)
     return [sum(rand([1, -1], cluster.ensemble.n) .* cluster.couplings) for i = 1:N]
 end
 

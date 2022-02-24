@@ -25,7 +25,7 @@ end
     T2 = coherencetime(cluster)
     t = 0:π/(20*h):T2
 
-    avg_bound = std_bound = 1 / √N # important
+    avg_bound = std_bound = 2 / √N # important
 
     println("testing cluster rabi oscillation curve Sz...")
     testcurve(
