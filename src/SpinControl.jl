@@ -8,6 +8,6 @@ include("ensembles/SpinEnsembles.jl")
 @reexport using .SpinEnsembles, .PulseSequences
 
 include("operators.jl")
-export evolution, fidelity, isunitary
+export evolution, channel, fidelity, isunitary
 
 end
