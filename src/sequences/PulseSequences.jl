@@ -12,7 +12,7 @@ struct SquarePulse<:Pulse
 
     function SquarePulse(h::Real, t::Real, aim::Vector{<:Real} = [1, 0, 0])
         @assert length(aim) == 3
-        return new(h, t, aim, h*t/2)
+        return new(h, t, aim, h*t)
     end
 end
 
