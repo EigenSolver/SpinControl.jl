@@ -206,7 +206,7 @@ function _rabix(t::AbstractVector{<:Real}, β::Real, h::Real)
 end
 
 """
-Get the average driving axis and average driving phase for a spin cluster
+Get the average driving axis and average driving phase (Rabi frequency) for a spin cluster
 """ 
 function driving(h::Real, t::Real, cluster::SpinCluster, 
     aim::Vector{<:Real}=[1,0,0]; N::Int=100, sampling::Bool = false)
@@ -214,13 +214,13 @@ function driving(h::Real, t::Real, cluster::SpinCluster,
     z0=cluster.ensemble.z0
     β_p = betasampling(cluster, N)
     n_p= β_p.*z0' .+ h*aim'
-    ω_p = sqrt.(sum(abs2, n_p, dims=2))
+    Ω_p = sqrt.(sum(abs2, n_p, dims=2))
 
     if sampling
-        return t*ω_p./2, n_p./ω_p
+        return t*Ω_p, n_p./Ω_p
     else
-        ω = sum(ω_p)/(2N)
+        Ω = sum(Ω_p)/N
         n = normalize(sum(n_p, dims=1))
-        return ω*t, vec(n)
+        return Ω*t, vec(n)
     end
 end 
