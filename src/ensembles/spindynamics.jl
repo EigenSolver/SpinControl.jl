@@ -191,20 +191,18 @@ end
 
 
 function _rabiz(t::AbstractVector{<:Real}, β::Real, h::Real)
-    ω = sqrt(h^2 + β^2) / 2
-    cos2 = cos.(ω * t) .^ 2
-    return (cos2 - (cos2 .- 1) * (β^2 - h^2) / (h^2 + β^2)) / 2
+    Ω = sqrt(h^2 + β^2)
+    return (β^2 .+ h^2 * cos.(Ω * t) ) / (2*Ω^2)
 end
 
 function _rabiy(t::AbstractVector{<:Real}, β::Real, h::Real)
     Ω = sqrt(h^2 + β^2)
-    return -sin.(Ω * t) / 2 * h / Ω
+    return -sin.(Ω * t)* h / (2Ω)
 end
 
 function _rabix(t::AbstractVector{<:Real}, β::Real, h::Real)
-    ω = sqrt(h^2 + β^2) / 2
-    sin2 = sin.(ω * t) .^ 2
-    return sin2 * (β * h) / (h^2 + β^2)
+    Ω = sqrt(h^2 + β^2)
+    return β*h * (1 .- cos.(Ω * t))  / (2*Ω^2)
 end
 
 """
