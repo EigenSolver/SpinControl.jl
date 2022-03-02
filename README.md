@@ -10,19 +10,33 @@ Users can easily use these abstractions to build their own control pulse sequenc
 
 - Spin 1/2, randomly distributed, positional disorder.
 - Dipole-dipole interactions.
-- Lattice structure. (to be added).
+- Tunable parameters like filling rate, cluster shape, cluster size, Zeeman field direction.  
 - Driving via external magnetic field.
+- Lattice structure. (To be added).
 
 ## Pulse Sequence
 
-- Periodic external field.
-- Tunable pulse duration and periodic pattern.
-- Time modulated on different directions.
-- Custom noises.
+- Arbitrary driving axis, strength and duration.
+- Various shape of driving pulse via composition.
+- Customized pulse sequence with free combination of pulse shapes and intervals.
+- Common dynamical decoupling protocols integrated.
 
-The package is currently under developing.
+## Spin Dynamics
+
+- Efficient simulation via Monte-Carlo sampling.
+- Highly optimized for common experiments like free induction decay and Rabi driving.
+- Ideal evolution unitary for pulse sequence, composed from ideal rotaion unitaries of pulses.
+- Monte-Carlo sampled Kraus operators for quantum operation on open subsystem.
+- Realistic dynamical decoupled system dynamics via serial quantum operations. (To be added)
+
+## Quantum Information
+
+- Effective characterization of gate and operation fidelity, via sampling.
+- Realistic gate design.
 
 ## Development Schedule
+
+**The package is currently under developing.**
 
 1. Fast prototype and draft documentation v0.1.0
 2. `SpinEnsemble` type and method, v0.2.0
