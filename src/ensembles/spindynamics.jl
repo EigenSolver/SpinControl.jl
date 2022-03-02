@@ -217,7 +217,7 @@ function driving(h::Real, t::Real, cluster::SpinCluster,
     Ω_p = sqrt.(sum(abs2, n_p, dims=2))
 
     if sampling
-        return t*Ω_p, n_p./Ω_p
+        return vec(t*Ω_p), n_p./Ω_p
     else
         Ω = sum(Ω_p)/N
         n = normalize(sum(n_p, dims=1))
