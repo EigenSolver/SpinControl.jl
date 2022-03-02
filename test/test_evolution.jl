@@ -23,8 +23,24 @@ end
     ρ=ψ * ψ'
     h=10; t=π/h; aim=[1,0,0]
 
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=500, sampling=true)
-    P = operation(ρ, ϕ_p, n_p)
+    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    @time P = operation(ρ, ϕ_p, n_p)
+    @time P = operation(ρ, ϕ_p, n_p)
+
+
+    # function operation2(ρ::Matrix{<:Number}, ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
+    #     c_k::Vector{<:Real}=ones(size(ϕ_k)))::Matrix{<:Number}
+    
+    #     ops=krausoperators(ϕ_k, n_k,c_k)
+    #     return operation(ρ,ops)
+    # end
+
+    # @time P2 = operation2(ρ, ϕ_p, n_p)
+    # @time P2 = operation2(ρ, ϕ_p, n_p)
+
+    # @test norm(P-P2)<1e5
+    # println("dif: ", P-P2)
+
     println("trace: ", tr(P))
     @test isunitary(P)==false
     println("fidelity: ",statefidelity(P,ρ))

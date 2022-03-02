@@ -5,7 +5,7 @@
 σ_z = [1 0; 0 -1]
 σ_vec = (σ_x, σ_y, σ_z)
 
-import LinearAlgebra:I, tr, normalize!, normalize, norm
+import LinearAlgebra:I, tr, normalize!, normalize, norm, kron
 
 isunitary(U::Matrix{<:Number})::Bool =  norm(U' * U- I)<1e-6
 
@@ -51,6 +51,7 @@ Get the ideal rotation unitary of a square pulse
 """
 rotation(pulse::SquarePulse)=rotation(pulse.phi, pulse.aim)
 
+
 """
 Evolve a quantum state or density matrix for given unitary
 """
@@ -77,12 +78,23 @@ end
 """
 Apply quantum operation on density state for given Kraus operators
 """
-function operation(ρ::Matrix{<:Number}, KrausOps::AbstractVector{Matrix})::Matrix{<:Number}
+function operation(ρ::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Matrix{<:Number}
     P=zeros(size(ρ))
-    for E in KrausOps
+    for E in krausops
         P+=E*ρ*E'
     end
     return P
+end
+
+"""
+Given a sampled list of driving strengths and phases, return a list of Kraus operators 
+"""
+function krausoperators(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
+    c_k::Vector{<:Real}=ones(size(ϕ_k)))::Vector{<:Matrix}
+
+    c_k=normalize(c_k,1)
+    
+    return [sqrt(c_k[i])*rotation(ϕ_k[i], n_k[i, :]) for i in 1:length(c_k)]
 end
 
 """
@@ -90,8 +102,7 @@ Apply quantum operation on density state for given rotation unitarys
 """
 function operation(ρ::Matrix{<:Number}, ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
     c_k::Vector{<:Real}=ones(size(ϕ_k)))::Matrix{<:Number}
-    
+
     c_k=normalize(c_k,1)
-    
-    mapreduce(i-> c_k[i]*evolution(ρ, ϕ_k[i], n_k[i, :]), .+, 1:length(c_k))
+    return mapreduce(i-> c_k[i]*evolution(ρ, ϕ_k[i], n_k[i, :]), .+, 1:length(c_k))
 end
