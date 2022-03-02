@@ -6,4 +6,5 @@ using LinearAlgebra
 # include("test_datatypes.jl")
 # include("test_dynamics.jl")
 # include("test_driving.jl")
-include("test_evolution.jl")
+# include("test_rotations.jl")
+include("test_fidelity.jl")

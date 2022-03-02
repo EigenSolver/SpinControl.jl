@@ -17,6 +17,27 @@ cluster = SpinCluster(ensemble)
     @test abs(tr(U*ρ*U')-1)<1e-5
 end
 
+@testset "pauli gate via evolution" begin
+    h=100; t=π/h;
+    X=rotation(SquarePulse(h, t, [-1, 0, 0]))
+    Y=rotation(SquarePulse(h, t, [0, -1, 0]))
+    Z=rotation(SquarePulse(h, t, [0, 0, -1]))
+
+    X=-im*rotation(π, [-1, 0, 0])|>real
+    Y=-im*rotation(π, [0, -1, 0])
+    Z=-im*rotation(π, [0, 0, -1])|>real
+    
+    @test isunitary(X)
+    println("X rotation: $X")
+
+    @test isunitary(Y)
+    println("Y rotation: $Y")
+
+    @test isunitary(Z)
+    println("Z rotation: $Z")
+
+end
+
 
 @testset "test operation" begin
     ψ=[1,0]
