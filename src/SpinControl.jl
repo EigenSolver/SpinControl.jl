@@ -1,7 +1,6 @@
 module SpinControl
 
 using Reexport
-# include("operators.jl")
 
 using LinearAlgebra
 

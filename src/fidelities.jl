@@ -47,8 +47,16 @@ end
 Return the fidelity of pauli gates (X,Y,Z) for given driving parameters
 """
 function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
-    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1)::Real
+    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180)::Real
+    
+    if phase==:_180
+        F = c_k .* (n_k[:, axis].*sin.(ϕ_k./2)).^2 |> sum
+    elseif phase==:_90
+        F = c_k/2 .* (cos.(ϕ_k./2) - n_k[:, axis].*sin.(ϕ_k./2)).^2 |> sum
+    else
+        error("invalid phase")
+    end
 
-    return c_k .* (n_k[:, axis].*sin.(ϕ_k./2)).^2 |> sum
+    return F
 end
 
