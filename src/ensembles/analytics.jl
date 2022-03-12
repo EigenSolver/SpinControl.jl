@@ -43,7 +43,7 @@ function analyticalrabi(
     @assert axis in (1, 2, 3)
     @assert isdilute(ensemble)
 
-    Γ = coherencetime(ensemble)
+    Γ = dipolarlinewidth(ensemble)
     F =
         exp.(im * (h .* t - Γ^2 * t ./ (2 * h))) .*
         erfc.(Γ * sqrt.(t ./ (2 * h)) * (1 - im) / sqrt(2))

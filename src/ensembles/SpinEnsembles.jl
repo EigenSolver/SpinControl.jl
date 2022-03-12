@@ -7,13 +7,14 @@ module SpinEnsembles
 using LinearAlgebra
 import SpecialFunctions: gamma, erfc
 import ProgressMeter: @showprogress
+import LsqFit: curve_fit
 
 # datetpye
 export SpinEnsemble, SpinCluster
 export volume, isdilute
 
 # mathods and functions
-export driving, fid, rabi, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
+export driving, fid, rabi, rabiperiod, betasampling, coherencetime, randlocs, randcoefs, dipolarlinewidth
 
 export analyticalfid, analyticalrabi
 
@@ -85,6 +86,9 @@ randlocs(ensemble::SpinEnsemble) =
     randlocs(ensemble.n, ensemble.dim, (ensemble.r, ensemble.R); method = ensemble.shape)
 randcoefs(ensemble::SpinEnsemble) = dipolarcoefs(randlocs(ensemble))
 
+"""
+Get the ensemble averaged coherencetime of a spin ensemble
+"""
 function coherencetime(ensemble::SpinEnsemble)
     if isdilute(ensemble)
         if ensemble.dim == 3
@@ -99,6 +103,19 @@ function coherencetime(ensemble::SpinEnsemble)
     else
         throw(DomainError("Ensemble is non-dilute"))
     end
+end
+
+"""
+Get the ensemble averaged linewidth of a spin ensemble.
+"""
+function dipolarlinewidth(ensemble::SpinEnsemble; M::Int=1000)
+    Γ=0
+    cluster=SpinCluster(ensemble)
+    for i in 1:M
+        Γ+=dipolarlinewidth(cluster)
+        reroll!(cluster)
+    end
+    return Γ/M
 end
 
 mutable struct SpinCluster
@@ -139,19 +156,17 @@ end
 @doc raw"""
     dipolarlinewidth(cluster)
 
-Get the linewidth of D, which follows Gaussian distribution. 
+Get the linewidth of a spin cluster.
 
 ```math
 b=\sqrt{\sum_j D_j^2}
 ```
-# Arguments
-- `D`: coupling strength of dipolar interactions, a array of floats
 """
-dipolarlinewidth(cluster::SpinCluster) = sqrt(mapreduce(abs2, +, cluster.couplings)) # in time computed and stored
-
+dipolarlinewidth(cluster::SpinCluster) = sqrt(mapreduce(abs2, +, cluster.couplings)) 
+# in time computed and stored
 
 @doc raw"""
-    coherencetime(D, n_t=500; scale=1.0)
+    coherencetime(cluster)
 
 The FID is Fourier transform of the noise spectrum. 
 For a Gaussian noise with linewidth `b`, it's characteristic function is 
@@ -162,12 +177,6 @@ Thus the decay time is given by
 ```math
 T_2=\frac{\pi}{b}
 ```
-
-# Arguments
-- `D::Vector{Real}`: a set of coupling strengths
-- `n_t`: size of the generated time array 
-# Options 
-- `scale`: scale factor to extend the T_2 
 """
 coherencetime(cluster::SpinCluster) = π / dipolarlinewidth(cluster)
 
