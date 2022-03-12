@@ -228,8 +228,8 @@ end
 """
 Find the Rabi period of the given ensemble under driving field, using linear regression at slope.
 """
-function rabiperiod(ensemble::SpinEnsemble, h::Real = 0; M::Int = 1000, N::Int = 100, λ::Real = 0.1)
-    L = 20 # short length fitting 
+function rabiperiod(ensemble::SpinEnsemble, h::Real = 0; 
+    M::Int = 1000, N::Int = 100, λ::Real = 0.1, L::Int = 20) # short length fitting 
     Γ = dipolarlinewidth(ensemble, M=M) 
     ω = sqrt(h^2+Γ^2)
     t0 = π/(2*ω)
