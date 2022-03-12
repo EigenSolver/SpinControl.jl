@@ -100,3 +100,11 @@ end
         std_bound,
     )
 end
+
+@testset "test period finding" begin
+    M=1000; N=500; h=200;
+    ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
+    T = rabiperiod(ensemble, h, M=M,N=N)
+    t = 0:π/h/100:π/h
+    @test abs(rabi([T/2], ensemble,h, M=M,N=N)[1])<1/sqrt(M)
+end
