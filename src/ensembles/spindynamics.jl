@@ -208,20 +208,34 @@ end
 """
 Get the average driving axis and average driving phase (Rabi frequency) for a spin cluster
 """ 
-function driving(h::Real, t::Real, cluster::SpinCluster, 
-    aim::Vector{<:Real}=[1,0,0]; N::Int=100, sampling::Bool = false)
-    normalize!(aim)
+function rabisampling(h::Vector{<:Real}, cluster::SpinCluster; N::Int=100)
     z0=cluster.ensemble.z0
     β_p = betasampling(cluster, N)
-    n_p= β_p.*z0' .+ h*aim'
-    Ω_p = sqrt.(sum(abs2, n_p, dims=2))
+    h_p= β_p.*z0' .+ h'
+    
+    return h_p
+end
 
-    if sampling
-        return vec(t*Ω_p), n_p./Ω_p
-    else
+function rabisampling(h::Real, cluster::SpinCluster, 
+    aim::Vector{<:Real}=[1,0,0]; N::Int=100)
+    normalize!(aim)
+    h_p = rabisampling(h*aim, cluster, N=N)
+    
+    Ω_p = sqrt.(sum(abs2, h_p, dims=2))
+    return vec(Ω_p), h_p./Ω_p
+end
+
+function rabisampling(h::Real, t::Real, cluster::SpinCluster, 
+    aim::Vector{<:Real}=[1,0,0]; N::Int=100, average::Bool = false)
+    
+    Ω_p, n_p = rabisampling(h, cluster, aim, N=N)
+
+    if average
         Ω = sum(Ω_p)/N
         n = normalize(sum(n_p, dims=1))
         return Ω*t, vec(n)
+    else
+        return t*Ω_p, n_p
     end
 end 
 
@@ -236,9 +250,10 @@ function rabiperiod(ensemble::SpinEnsemble, h::Real = 0;
     t = LinRange(t0*(1-λ),t0*(1+λ), L)
     curve=rabi(t, ensemble, h; M=M, N=N)
     # linear regression
-    m(t, p) = p[1] * t .+ p[2]
-    p0 = [-ω, π/2]
-    fit = curve_fit(m, t, curve, p0) 
-    (k,b) = fit.param
-    return -2*b/k
+    for i in 2:L
+        if curve[i-1]>0 && curve[i]<0
+            return 2*(t[i-1]+curve[i-1]/(curve[i-1]-curve[i])*(t[i]-t[i-1]))
+        end
+    end
+    error("zero points not detected")
 end

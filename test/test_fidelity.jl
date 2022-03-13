@@ -5,7 +5,7 @@ cluster = SpinCluster(ensemble)
     h=50; t=π/h; 
     
     aim=[1,0,0]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))
@@ -16,7 +16,7 @@ cluster = SpinCluster(ensemble)
 
 
     aim=[0,1,0]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))
@@ -27,7 +27,7 @@ cluster = SpinCluster(ensemble)
 
 
     aim=[0,0,1]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))
@@ -41,7 +41,7 @@ end
     h=50; t=π/(2h); 
     
     aim=[-1,0,0]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))
@@ -52,7 +52,7 @@ end
 
 
     aim=[0,-1,0]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))
@@ -63,7 +63,7 @@ end
 
 
     aim=[0,0,-1]
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     U = rotation(SquarePulse(h,t,aim))
 
     F1=processfidelity(U, krausoperators(ϕ_p, n_p))

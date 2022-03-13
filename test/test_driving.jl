@@ -15,8 +15,8 @@ h=10; t=π/h;
     @test isunitary(U)
 end
 
-@testset "test driving sampling" begin
-    ω_p, n_p = driving(h, t, cluster, N=500, sampling=true)
+@testset "test rabi sampling" begin
+    ω_p, n_p = rabisampling(h, t, cluster, N=500)
     ω_p2=[norm(vec) for vec in eachrow(n_p)]
     @test sum(ω_p2.-2*ω_p)<0.001
     @test [abs(norm(vec)-1)<0.001 for vec in eachrow(n_p)]|>all
@@ -27,7 +27,7 @@ end
         @test isunitary(U_p)
     end
 
-    ϕ, n = driving(h, t, cluster, N=500, sampling=false)
+    ϕ, n = rabisampling(h, t, cluster, N=500, average=true)
     println("omega: ", ϕ, " axis: ", n, "\n")
     @test n isa Vector
     @test length(n)==3

@@ -44,7 +44,7 @@ end
     ρ=ψ * ψ'
     h=10; t=π/h; aim=[1,0,0]
 
-    ϕ_p, n_p = driving(h, t, cluster, aim, N=1000, sampling=true)
+    ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
     @time P = operation(ρ, ϕ_p, n_p)
     @time P = operation(ρ, ϕ_p, n_p)
 
