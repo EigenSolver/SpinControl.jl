@@ -246,13 +246,13 @@ function rabiperiod(ensemble::SpinEnsemble, h::Real = 0;
     M::Int = 1000, N::Int = 100, λ::Real = 0.1, L::Int = 20) # short length fitting 
     Γ = dipolarlinewidth(ensemble, M=M) 
     ω = sqrt(h^2+Γ^2)
-    t0 = π/(2*ω)
+    t0 = π/(ω)
     t = LinRange(t0*(1-λ),t0*(1+λ), L)
-    curve=rabi(t, ensemble, h; M=M, N=N)
+    curve=-rabi(t, ensemble, h; M=M, N=N, axis=2)
     # linear regression
     for i in 2:L
         if curve[i-1]>0 && curve[i]<0
-            return 2*(t[i-1]+curve[i-1]/(curve[i-1]-curve[i])*(t[i]-t[i-1]))
+            return t[i-1]+curve[i-1]/(curve[i-1]-curve[i])*(t[i]-t[i-1])
         end
     end
     error("zero points not detected")

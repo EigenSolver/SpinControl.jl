@@ -9,13 +9,14 @@ using LinearAlgebra
 # include("test_rotations.jl")
 # include("test_fidelity.jl")
 
-
 @testset "test period finding" begin
     M=1000; N=500; h=200;
     ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
-    T = rabiperiod(ensemble, h, M=M, N=N, λ=0.05, L=40)
-    t = 0:π/h/100:π/h
-    err=abs(rabi([T/2], ensemble,h, M=M,N=N)[1])
-    println(err)
+    @time T = rabiperiod(ensemble, h, M=M, N=N, λ=0.02, L=20)
+    println("period: $T")
+    vals=rabi([T/2, T], ensemble,h, M=M,N=N)
+    err=abs(vals[1])
+    println("Error:", err)
+    println("Rabi pi: ", vals[2])
     @test err<1/sqrt(M)
 end
