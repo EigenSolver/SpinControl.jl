@@ -105,18 +105,18 @@ function coherencetime(ensemble::SpinEnsemble)
     end
 end
 
-"""
-Get the ensemble averaged linewidth of a spin ensemble.
-"""
-function dipolarlinewidth(ensemble::SpinEnsemble; M::Int=1000)
-    Γ=0
-    cluster=SpinCluster(ensemble)
-    for i in 1:M
-        Γ+=dipolarlinewidth(cluster)
-        reroll!(cluster)
-    end
-    return Γ/M
-end
+# """
+# Get the ensemble averaged linewidth of a spin ensemble.
+# """
+# function dipolarlinewidth(ensemble::SpinEnsemble; M::Int=1000)
+#     Γ=0
+#     cluster=SpinCluster(ensemble)
+#     for i in 1:M
+#         Γ+=dipolarlinewidth(cluster)
+#         reroll!(cluster)
+#     end
+#     return Γ/M
+# end
 
 mutable struct SpinCluster
     ensemble::SpinEnsemble
@@ -163,8 +163,6 @@ b=\sqrt{\sum_j D_j^2}
 ```
 """
 dipolarlinewidth(cluster::SpinCluster) = sqrt(mapreduce(abs2, +, cluster.couplings)) 
-# in time computed and stored
-
 @doc raw"""
     coherencetime(cluster)
 
@@ -178,7 +176,7 @@ Thus the decay time is given by
 T_2=\frac{\pi}{b}
 ```
 """
-coherencetime(cluster::SpinCluster) = π / dipolarlinewidth(cluster)
+coherencetime(cluster::SpinCluster) = 1 / dipolarlinewidth(cluster)
 
 """
 Reroll the points in the cluster

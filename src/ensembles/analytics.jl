@@ -20,6 +20,7 @@ A=\frac{1}{2}\left(1+b^4t^2/h^2\right)^{1/4},\quad \varphi=\frac{1}{2}\arctan(b^
 """
 function analyticalrabi(t::AbstractVector, cluster::SpinCluster, h::Real; axis::Int = 3)
 
+    @assert cluster.ensemble.dim==3 # only apply for 3D case
     @assert axis in (1, 2, 3)
     b = dipolarlinewidth(cluster)
 
@@ -42,8 +43,9 @@ function analyticalrabi(
 )
     @assert axis in (1, 2, 3)
     @assert isdilute(ensemble)
+    @assert ensemble.dim==3 # only apply for 3D case
 
-    Γ = dipolarlinewidth(ensemble)
+    Γ = 1/ coherencetime(ensemble) # fix dipolar linewidth
     F =
         exp.(im * (h .* t - Γ^2 * t ./ (2 * h))) .*
         erfc.(Γ * sqrt.(t ./ (2 * h)) * (1 - im) / sqrt(2))

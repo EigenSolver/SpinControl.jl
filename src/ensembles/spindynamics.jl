@@ -236,9 +236,7 @@ Find the Rabi period of the given ensemble under driving field, using linear reg
 """
 function rabiperiod(ensemble::SpinEnsemble, h::Real = 0; 
     M::Int = 1000, N::Int = 100, λ::Real = 0.1, L::Int = 20) # short length fitting 
-    Γ = dipolarlinewidth(ensemble, M=M) 
-    ω = sqrt(h^2+Γ^2)
-    t0 = π/(ω)
+    t0 = π/h
     t = LinRange(t0*(1-λ),t0*(1+λ), L)
     curve=-rabi(t, ensemble, h; M=M, N=N, axis=2)
     # linear regression
