@@ -26,14 +26,4 @@ end
         @test U_p isa Matrix
         @test isunitary(U_p)
     end
-
-    ϕ, n = rabisampling(h, t, cluster, N=500, average=true)
-    println("omega: ", ϕ, " axis: ", n, "\n")
-    @test n isa Vector
-    @test length(n)==3
-
-    U=rotation(ϕ, n)
-    println("rotation: \n", U)
-    @test U isa Matrix
-    @test isunitary(U)
 end 

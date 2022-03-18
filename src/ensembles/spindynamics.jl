@@ -226,17 +226,9 @@ function rabisampling(h::Real, cluster::SpinCluster,
 end
 
 function rabisampling(h::Real, t::Real, cluster::SpinCluster, 
-    aim::Vector{<:Real}=[1,0,0]; N::Int=100, average::Bool = false)
-    
+    aim::Vector{<:Real}=[1,0,0]; N::Int=100) 
     Ω_p, n_p = rabisampling(h, cluster, aim, N=N)
-
-    if average
-        Ω = sum(Ω_p)/N
-        n = normalize(sum(n_p, dims=1))
-        return Ω*t, vec(n)
-    else
-        return t*Ω_p, n_p
-    end
+    return t*Ω_p, n_p
 end 
 
 """
