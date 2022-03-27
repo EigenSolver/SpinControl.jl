@@ -105,18 +105,20 @@ function coherencetime(ensemble::SpinEnsemble)
     end
 end
 
-# """
-# Get the ensemble averaged linewidth of a spin ensemble.
-# """
-# function dipolarlinewidth(ensemble::SpinEnsemble; M::Int=1000)
-#     Γ=0
-#     cluster=SpinCluster(ensemble)
-#     for i in 1:M
-#         Γ+=dipolarlinewidth(cluster)
-#         reroll!(cluster)
-#     end
-#     return Γ/M
-# end
+@doc raw"""
+Sampling the effective magnetic field for given spin ensemble
+"""
+function betasampling(ensemble::SpinEnsemble; M::Int = 1, N::Int = 1)
+    sampling=zeros(M*N)
+    for i in 1:M
+        cluster=SpinCluster(ensemble)
+        for j in 1:N
+            sampling[(i-1)*N+j]=sum(rand([1, -1], cluster.ensemble.n) .* cluster.couplings) 
+        end
+        reroll!(cluster)
+    end
+    return sampling
+end
 
 mutable struct SpinCluster
     ensemble::SpinEnsemble
@@ -137,26 +139,21 @@ isdilute(cluster::SpinCluster) = cluster.ensemble.rho < 1
 @doc raw"""
     betasampling(cluster, N)
 
-Get the Gaussian linewidth of dipolar coupling for the given spin cluster
+    Sampling the effective magnetic field for given spin cluster
 
-    ```math
+```math
 \beta_p = \sum_j p_j \,D_j,\; p_j=\pm 1
 ```
-
-# Arguments
-- `D`: coupling strength of dipolar interactions, a array of floats
-- `ensemble`: a `SpinEnsemble`, use this function as the method of the type 
-# Options
-- `N`: size of Monte-Carlo sampling
 """
 function betasampling(cluster::SpinCluster, N::Int = 1)
     return [sum(rand([1, -1], cluster.ensemble.n) .* cluster.couplings) for i = 1:N]
 end
 
+
 @doc raw"""
     dipolarlinewidth(cluster)
 
-Get the linewidth of a spin cluster.
+    Get the Gaussian linewidth of dipolar coupling for the given spin cluster
 
 ```math
 b=\sqrt{\sum_j D_j^2}

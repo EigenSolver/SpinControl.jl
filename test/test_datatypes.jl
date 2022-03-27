@@ -16,6 +16,7 @@ import SpinControl.SpinEnsembles: reroll!
     ensemble4 = SpinEnsemble(2000, 1, [1, 1, 0], 0, 5, :cubic)
     @test ensemble3.rho == ensemble4.rho / 2
     @test volume(ensemble3) == volume(ensemble4) == 10
+    @test betasampling(ensemble, M=500,N=100)|>length==5e4
 end
 
 @testset "spin cluster" begin
@@ -23,6 +24,6 @@ end
     cluster = SpinCluster(ensemble)
     @test dipolarlinewidth(cluster) isa Real
     @test betasampling(cluster, 100) isa Vector{Float64}
-    @test coherencetime(cluster) == π / dipolarlinewidth(cluster)
+    @test coherencetime(cluster) == 1 / dipolarlinewidth(cluster)
     reroll!(cluster)
 end
