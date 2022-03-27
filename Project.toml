@@ -1,7 +1,7 @@
 name = "SpinControl"
 uuid = "b4cd1eb8-1e24-11e8-3319-93036a3eb9f3"
 authors = ["Yuning Zhang <neuromancer43@gmail.com>"]
-version = "0.2.6"
+version = "0.2.8"
 
 [deps]
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
