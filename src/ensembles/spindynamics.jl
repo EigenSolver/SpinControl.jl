@@ -5,10 +5,89 @@ function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale::R
 end
 
 # dynamics
-@doc raw"""
-    fid(t, M, sampling_D; [options]...)
-    fid(t, M, sampling_D; [options]...)
 
+#____________________________#
+"""
+fid based on sampling of beta
+"""
+# need test
+function fid(
+    t::AbstractVector{Float64},
+    β::AbstractVector{Float64},   
+    h::Real = 0;
+    geterr::Bool = false,
+)
+    N=length(β)
+    f_sum = zeros(length(t)) # sum
+    f_var = copy(f_sum) # square sum
+    for i in 1:N
+        β_p=β[i]
+        ω_p = sqrt(h^2 + β_p^2) / 2
+        cos2_p = cos.(ω_p * t) .^ 2
+        f_p = (cos2_p + (cos2_p .- 1) * (β_p^2 - h^2) / (h^2 + β_p^2)) / 2
+        f_sum += f_p
+        f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    end
+    if geterr
+        return (f_sum / N, f_var / (N - 1))
+    else
+        return f_sum / N
+    end
+end
+
+"""
+rabi based on sampling of beta
+"""
+# need test
+function rabi(
+    t::AbstractVector{Float64},
+    β::AbstractVector{Float64}, 
+    h::Real;
+    axis::Int = 3,
+    geterr::Bool = false,
+)
+    @assert axis in (1, 2, 3)
+
+    N=length(β)
+    f_sum = zeros(length(t)) # sum
+    f_var = copy(f_sum) # square sum
+    f_sampling = (_rabix, _rabiy, _rabiz)[axis]
+
+    for i in 1:N
+        β_p = β[i]
+        f_p = f_sampling(t, β_p, h)
+        f_sum += f_p
+        f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    end
+    if geterr
+        return (f_sum / N, f_var / (N - 1))
+    else
+        return f_sum / N
+    end
+end
+
+
+# need test
+function rabiperiod(β::AbstractVector{Float64}, h::Real = 0; 
+    λ::Real = 0.1, L::Int = 20) # short length fitting 
+    
+    t0 = π/h
+    t = LinRange(t0*(1-λ),t0*(1+λ), L)
+    curve=-rabi(t, β, h; axis=2)
+    # linear regression
+    for i in 2:L
+        if curve[i-1]>0 && curve[i]<0
+            return t[i-1]+curve[i-1]/(curve[i-1]-curve[i])*(t[i]-t[i-1])
+        end
+    end
+    error("zero points not detected")
+end
+
+function rabisampling(h::Vector{<:Real}, β::AbstractVector{<:Real}, z0::Vector{<:Real}=[0,0,1])
+    return β.*z0' .+ h'
+end
+
+@doc raw"""
 Calculate the average free induction decay over different ensembles (disorders) 
 
 ```math
@@ -29,22 +108,24 @@ function fid(
     N::Int = 100,
     geterr::Bool = false,
 )
-    f_sum = zeros(length(t))
-    f_var = copy(f_sum)
-    cluster = SpinCluster(ensemble)
-    @showprogress for i = 1:M
-        f_d = fid(t, cluster, h; N = N)
-        f_sum += f_d
-        f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
-        reroll!(cluster)
-    end
-    if geterr
-        return f_sum / M, f_var / (M - 1)
-    else
-        return f_sum / M
-    end
-end
+    β=betasampling(ensemble, M, N)
+    return fid(t,β ,h; geterr=geterr)
 
+    # f_sum = zeros(length(t))
+    # f_var = copy(f_sum)
+    # cluster = SpinCluster(ensemble)
+    # @showprogress for i = 1:M
+    #     f_d = fid(t, cluster, h; N = N)
+    #     f_sum += f_d
+    #     f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    #     reroll!(cluster)
+    # end
+    # if geterr
+    #     return f_sum / M, f_var / (M - 1)
+    # else
+    #     return f_sum / M
+    # end
+end
 
 function rabi(
     t::AbstractVector{Float64},
@@ -55,20 +136,22 @@ function rabi(
     axis::Int = 3,
     geterr::Bool = false,
 )
-    f_sum = zeros(length(t))
-    f_var = copy(f_sum)
-    cluster = SpinCluster(ensemble)
-    @showprogress for i = 1:M
-        f_d = rabi(t, cluster, h; N = N, axis = axis)
-        f_sum += f_d
-        f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
-        reroll!(cluster)
-    end
-    if geterr
-        return f_sum / M, f_var / (M - 1)
-    else
-        return f_sum / M
-    end
+    β=betasampling(ensemble, M, N)
+    return rabi(t,β,h, axis=axis, geterr=geterr)
+    # f_sum = zeros(length(t))
+    # f_var = copy(f_sum)
+    # cluster = SpinCluster(ensemble)
+    # @showprogress for i = 1:M
+    #     f_d = rabi(t, cluster, h; N = N, axis = axis)
+    #     f_sum += f_d
+    #     f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    #     reroll!(cluster)
+    # end
+    # if geterr
+    #     return f_sum / M, f_var / (M - 1)
+    # else
+    #     return f_sum / M
+    # end
 end
 
 
@@ -108,28 +191,30 @@ function fid(
     N::Int = 100,
     geterr::Bool = false,
 )
-    D = cluster.couplings
+    β=betasampling(cluster, N)
+    return fid(t,β,h, geterr=geterr)
+    # D = cluster.couplings
 
-    if h == 0
-        return [mapreduce(cos, *, D * τ) / 2 for τ in t]
-    end
+    # if h == 0
+    #     return [mapreduce(cos, *, D * τ) / 2 for τ in t]
+    # end
 
-    n = length(D)
-    f_sum = zeros(length(t)) # sum
-    f_var = copy(f_sum) # square sum
-    for i = 1:N
-        β_p = sum(rand([1, -1], n) .* D)
-        ω_p = sqrt(h^2 + β_p^2) / 2
-        cos2_p = cos.(ω_p * t) .^ 2
-        f_p = (cos2_p + (cos2_p .- 1) * (β_p^2 - h^2) / (h^2 + β_p^2)) / 2
-        f_sum += f_p
-        f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    end
-    if geterr
-        return (f_sum / N, f_var / (N - 1))
-    else
-        return f_sum / N
-    end
+    # n = length(D)
+    # f_sum = zeros(length(t)) # sum
+    # f_var = copy(f_sum) # square sum
+    # for i = 1:N
+    #     β_p = sum(rand([1, -1], n) .* D)
+    #     ω_p = sqrt(h^2 + β_p^2) / 2
+    #     cos2_p = cos.(ω_p * t) .^ 2
+    #     f_p = (cos2_p + (cos2_p .- 1) * (β_p^2 - h^2) / (h^2 + β_p^2)) / 2
+    #     f_sum += f_p
+    #     f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    # end
+    # if geterr
+    #     return (f_sum / N, f_var / (N - 1))
+    # else
+    #     return f_sum / N
+    # end
 end
 
 
@@ -170,23 +255,25 @@ function rabi(
 )
     @assert axis in (1, 2, 3)
 
-    D = cluster.couplings
-    n = length(D)
-    f_sum = zeros(length(t)) # sum
-    f_var = copy(f_sum) # square sum
-    f_sampling = (_rabix, _rabiy, _rabiz)[axis]
+    β=betasampling(cluster, N)
+    return rabi(t, β, h, axis=axis, geterr=geterr)
+    # D = cluster.couplings
+    # n = length(D)
+    # f_sum = zeros(length(t)) # sum
+    # f_var = copy(f_sum) # square sum
+    # f_sampling = (_rabix, _rabiy, _rabiz)[axis]
 
-    for i = 1:N
-        β_p = sum(rand([1, -1], n) .* D)
-        f_p = f_sampling(t, β_p, h)
-        f_sum += f_p
-        f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    end
-    if geterr
-        return (f_sum / N, f_var / (N - 1))
-    else
-        return f_sum / N
-    end
+    # for i = 1:N
+    #     β_p = sum(rand([1, -1], n) .* D)
+    #     f_p = f_sampling(t, β_p, h)
+    #     f_sum += f_p
+    #     f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    # end
+    # if geterr
+    #     return (f_sum / N, f_var / (N - 1))
+    # else
+    #     return f_sum / N
+    # end
 end
 
 
@@ -210,8 +297,8 @@ Get the average driving axis and average driving phase (Rabi frequency) for a sp
 """ 
 function rabisampling(h::Vector{<:Real}, cluster::SpinCluster; N::Int=100)
     z0=cluster.ensemble.z0
-    β_p = betasampling(cluster, N)
-    h_p= β_p.*z0' .+ h'
+    β = betasampling(cluster, N)
+    h_p= β.*z0' .+ h'
     
     return h_p
 end
