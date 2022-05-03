@@ -108,7 +108,7 @@ end
 @doc raw"""
 Sampling the effective magnetic field for given spin ensemble
 """
-function betasampling(ensemble::SpinEnsemble; M::Int = 1, N::Int = 1)
+function betasampling(ensemble::SpinEnsemble, M::Int = 1, N::Int = 1)
     sampling=zeros(M*N)
     for i in 1:M
         cluster=SpinCluster(ensemble)
@@ -119,6 +119,8 @@ function betasampling(ensemble::SpinEnsemble; M::Int = 1, N::Int = 1)
     end
     return sampling
 end
+
+betasampling(ensemble::SpinEnsemble; M::Int = 1, N::Int = 1)=betasampling(ensemble, M, N)
 
 mutable struct SpinCluster
     ensemble::SpinEnsemble

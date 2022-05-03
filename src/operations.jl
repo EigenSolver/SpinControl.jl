@@ -62,21 +62,21 @@ end
 """
 Apply quantum operation on density state for given rotation unitarys
 """
-function operation(ρ::Matrix{<:Number}, ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
-    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)), 1) 
+function operation(ρ::Matrix{<:Number}, ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
+    c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
     )::Matrix{<:Number}
 
-    c_k=normalize(c_k,1)
-    return mapreduce(i-> c_k[i]*evolution(ρ, ϕ_k[i], n_k[i, :]), .+, 1:length(c_k))
+    c=normalize(c,1)
+    return mapreduce(i-> c[i]*evolution(ρ, ϕ[i], n[i, :]), .+, 1:length(c))
 end
 
 
 """
 Given a sampled list of driving strengths and phases, return a list of Kraus operators 
 """
-function krausoperators(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
-    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)), 1) 
+function krausoperators(ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
+    c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
     )::Vector{<:Matrix}
     
-    return [sqrt(c_k[i])*rotation(ϕ_k[i], n_k[i, :]) for i in 1:length(c_k)]
+    return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in 1:length(c)]
 end
