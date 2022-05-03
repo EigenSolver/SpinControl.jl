@@ -4,10 +4,10 @@ using LinearAlgebra
 
 # include("test_locations.jl")
 # include("test_datatypes.jl")
-# include("test_dynamics.jl")
-# include("test_driving.jl")
-# include("test_rotations.jl")
-# include("test_fidelity.jl")
+include("test_dynamics.jl")
+include("test_driving.jl")
+include("test_rotations.jl")
+include("test_fidelity.jl")
 
 @testset "test period finding" begin
     M=1000; N=500; h=200;
