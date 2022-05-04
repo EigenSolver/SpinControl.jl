@@ -227,17 +227,14 @@ function rabisampling(h::Vector{<:Real}, cluster::SpinCluster; N::Int=100)
     z0=cluster.ensemble.z0
     β = betasampling(cluster, N)
     h_p= β.*z0' .+ h'
-    
-    return h_p
+    Ω_p = sqrt.(sum(abs2, h_p, dims=2))
+    return vec(Ω_p), h_p./Ω_p
 end
 
 function rabisampling(h::Real, cluster::SpinCluster, 
     aim::Vector{<:Real}=[1,0,0]; N::Int=100)
     normalize!(aim)
-    h_p = rabisampling(h*aim, cluster, N=N)
-    
-    Ω_p = sqrt.(sum(abs2, h_p, dims=2))
-    return vec(Ω_p), h_p./Ω_p
+    return rabisampling(h*aim, cluster, N=N)
 end
 
 function rabisampling(h::Real, t::Real, cluster::SpinCluster, 
