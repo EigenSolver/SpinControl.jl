@@ -15,13 +15,10 @@ using LinearAlgebra
     @test Idle(3) isa Idle
     seq1=XY(10,1)
     @test seq1 isa Sequence
-    seq2=vcat(XY(10,1), YX(10,1))
+    seq2=XY(10, 1, symmetry=true)
     @test seq2 isa Sequence
     println("XY-8: ", seq2)
     seq3=CP(10,1)
     @test seq3 isa Sequence
     println("CP: ", seq3)
-    # seq4=CPMG(10,1)
-    # @test seq4 isa Sequence
-    # println("CPMG: ", seq4)
 end
