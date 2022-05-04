@@ -77,6 +77,12 @@ function rabiperiod(β::AbstractVector{Float64}, h::Real = 0;
     error("zero points not detected")
 end
 
+function rabisampling(h::Vector{<:Real}, β::AbstractVector{<:Real}, z0::Vector{<:Real}=[0,0,1])
+    h_p= β.*z0' .+ h'
+    Ω_p = sqrt.(sum(abs2, h_p, dims=2))
+    return vec(Ω_p), h_p./Ω_p
+end
+
 @doc raw"""
 Calculate the average free induction decay over different ensembles (disorders) 
 

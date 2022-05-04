@@ -10,9 +10,8 @@ include("ensembles/SpinEnsembles.jl")
 
 include("operations.jl")
 include("fidelities.jl")
-include("pulseunitarys.jl")
 
-export operation, rotation, krausoperators, isunitary
-export statefidelity, processfidelity, paulifidelity
+export operation, unitary, rotation, krausoperators, isunitary
+export statefidelity, processfidelity, entanglementfidelity, paulifidelity
 
 end
