@@ -4,19 +4,24 @@ using LinearAlgebra
 
 # include("test_locations.jl")
 # include("test_datatypes.jl")
-include("test_dynamics.jl")
-include("test_driving.jl")
-include("test_rotations.jl")
-include("test_fidelity.jl")
+# include("test_dynamics.jl")
+# include("test_driving.jl")
+# include("test_rotations.jl")
+# include("test_fidelity.jl")
 
-@testset "test period finding" begin
-    M=1000; N=500; h=200;
-    ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
-    @time T = rabiperiod(ensemble, h, M=M, N=N, λ=0.02, L=20)
-    println("period: $T")
-    vals=rabi([T/2, T], ensemble,h, M=M,N=N)
-    err=abs(vals[1])
-    println("Error:", err)
-    println("Rabi pi: ", vals[2])
-    @test err<1/sqrt(M)
+
+@testset "sequence" begin
+    @test Idle(3) isa Pulse
+    @test Idle(3) isa Idle
+    seq1=XY(10,1)
+    @test seq1 isa Sequence
+    seq2=vcat(XY(10,1), YX(10,1))
+    @test seq2 isa Sequence
+    println("XY-8: ", seq2)
+    seq3=CP(10,1)
+    @test seq3 isa Sequence
+    println("CP: ", seq3)
+    # seq4=CPMG(10,1)
+    # @test seq4 isa Sequence
+    # println("CPMG: ", seq4)
 end
