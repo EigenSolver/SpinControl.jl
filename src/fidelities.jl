@@ -30,7 +30,23 @@ end
 """
 Calculate the process fidelity between the target unitary and a quantum channel defined by given kraus operators, 
 """
+# this is faster
 function processfidelity(U::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Real
+    F=entanglementfidelity(U, krausops)
+    d=2
+    return (d*F+1)/(d+1)
+end
+
+# function processfidelity(U::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Real
+#     @assert isunitary(U) 
+#     F=1/4
+#     for ρ_0 in [σ_x, σ_y, σ_z]
+#         F+=tr(U*ρ_0'*U' * operation(ρ_0,krausops))/8
+#     end
+#     return F
+# end
+
+function entanglementfidelity(U::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Real
     @assert isunitary(U) 
     ρ_0 = Ψ  * Ψ'
 
@@ -39,12 +55,11 @@ function processfidelity(U::Matrix{<:Number}, krausops::AbstractVector{<:Matrix}
         T = U' * E
         F += Ψ' * kron(σ_i,T) * ρ_0 * kron(σ_i,T') * Ψ 
     end
-    
     return F
 end
 
 """
-Return the fidelity of pauli gates (X,Y,Z) for given driving parameters
+Return the entanglement fidelity of pauli gates (X,Y,Z) for given driving parameters
 """
 function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
     c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180)::Real

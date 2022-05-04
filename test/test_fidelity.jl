@@ -6,9 +6,9 @@ cluster = SpinCluster(ensemble)
     
     aim=[1,0,0]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p)
     println("X gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
@@ -17,9 +17,9 @@ cluster = SpinCluster(ensemble)
 
     aim=[0,1,0]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p, axis=2)
     println("Y gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
@@ -28,9 +28,9 @@ cluster = SpinCluster(ensemble)
 
     aim=[0,0,1]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p, axis=3)
     println("Z gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
@@ -42,9 +42,9 @@ end
     
     aim=[-1,0,0]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p, axis=1, phase=:_90)
     println("√X gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
@@ -53,9 +53,9 @@ end
 
     aim=[0,-1,0]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p, axis=2, phase=:_90)
     println("√Y gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
@@ -64,11 +64,21 @@ end
 
     aim=[0,0,-1]
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    U = rotation(SquarePulse(h,t,aim))
+    U = unitary(SquarePulse(h,t,aim))
 
-    F1=processfidelity(U, krausoperators(ϕ_p, n_p))
+    F1=entanglementfidelity(U, krausoperators(ϕ_p, n_p))
     F2=paulifidelity(ϕ_p, n_p, axis=3, phase=:_90)
     println("√Z gate")
     println("Fidelity is F1:$(F1), F2:$(F2)")
     @test abs(F1-F2)<1e-6
+end
+
+@testset "test sequence fidelity" begin
+    ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
+    β=betasampling(ensemble, M=50,N=10)
+    seq1=XY(20,2)
+    kops=krausoperators(seq1,β)
+    @time f1=processfidelity([1 0; 0 1], kops)
+    @time f2=entanglementfidelity([1 0; 0 1], kops)
+    @test abs(f1-(2*f2+1)/3)<1e-5
 end
