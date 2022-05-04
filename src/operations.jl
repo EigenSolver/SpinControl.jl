@@ -80,3 +80,8 @@ function krausoperators(ϕ::Vector{<:Real}, n::Matrix{<:Real},
     
     return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in 1:length(c)]
 end
+
+
+function rabisampling(h::Vector{<:Real}, β::AbstractVector{<:Real}, z0::Vector{<:Real}=[0,0,1])
+    return β.*z0' .+ h'
+end

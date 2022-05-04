@@ -5,12 +5,9 @@ function relevanttime(spins::Union{SpinCluster,SpinEnsemble}, n_t::Int; scale::R
 end
 
 # dynamics
-
-#____________________________#
 """
 fid based on sampling of beta
 """
-# need test
 function fid(
     t::AbstractVector{Float64},
     β::AbstractVector{Float64},   
@@ -20,7 +17,7 @@ function fid(
     N=length(β)
     f_sum = zeros(length(t)) # sum
     f_var = copy(f_sum) # square sum
-    for i in 1:N
+    @showprogress for i in 1:N
         β_p=β[i]
         ω_p = sqrt(h^2 + β_p^2) / 2
         cos2_p = cos.(ω_p * t) .^ 2
@@ -38,7 +35,6 @@ end
 """
 rabi based on sampling of beta
 """
-# need test
 function rabi(
     t::AbstractVector{Float64},
     β::AbstractVector{Float64}, 
@@ -53,7 +49,7 @@ function rabi(
     f_var = copy(f_sum) # square sum
     f_sampling = (_rabix, _rabiy, _rabiz)[axis]
 
-    for i in 1:N
+    @showprogress for i in 1:N
         β_p = β[i]
         f_p = f_sampling(t, β_p, h)
         f_sum += f_p
@@ -66,8 +62,6 @@ function rabi(
     end
 end
 
-
-# need test
 function rabiperiod(β::AbstractVector{Float64}, h::Real = 0; 
     λ::Real = 0.1, L::Int = 20) # short length fitting 
     
@@ -81,10 +75,6 @@ function rabiperiod(β::AbstractVector{Float64}, h::Real = 0;
         end
     end
     error("zero points not detected")
-end
-
-function rabisampling(h::Vector{<:Real}, β::AbstractVector{<:Real}, z0::Vector{<:Real}=[0,0,1])
-    return β.*z0' .+ h'
 end
 
 @doc raw"""
@@ -110,21 +100,6 @@ function fid(
 )
     β=betasampling(ensemble, M, N)
     return fid(t,β ,h; geterr=geterr)
-
-    # f_sum = zeros(length(t))
-    # f_var = copy(f_sum)
-    # cluster = SpinCluster(ensemble)
-    # @showprogress for i = 1:M
-    #     f_d = fid(t, cluster, h; N = N)
-    #     f_sum += f_d
-    #     f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    #     reroll!(cluster)
-    # end
-    # if geterr
-    #     return f_sum / M, f_var / (M - 1)
-    # else
-    #     return f_sum / M
-    # end
 end
 
 function rabi(
@@ -138,20 +113,6 @@ function rabi(
 )
     β=betasampling(ensemble, M, N)
     return rabi(t,β,h, axis=axis, geterr=geterr)
-    # f_sum = zeros(length(t))
-    # f_var = copy(f_sum)
-    # cluster = SpinCluster(ensemble)
-    # @showprogress for i = 1:M
-    #     f_d = rabi(t, cluster, h; N = N, axis = axis)
-    #     f_sum += f_d
-    #     f_var += i > 1 ? (i * f_d - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    #     reroll!(cluster)
-    # end
-    # if geterr
-    #     return f_sum / M, f_var / (M - 1)
-    # else
-    #     return f_sum / M
-    # end
 end
 
 
@@ -191,30 +152,14 @@ function fid(
     N::Int = 100,
     geterr::Bool = false,
 )
-    β=betasampling(cluster, N)
-    return fid(t,β,h, geterr=geterr)
-    # D = cluster.couplings
+    D = cluster.couplings
 
-    # if h == 0
-    #     return [mapreduce(cos, *, D * τ) / 2 for τ in t]
-    # end
-
-    # n = length(D)
-    # f_sum = zeros(length(t)) # sum
-    # f_var = copy(f_sum) # square sum
-    # for i = 1:N
-    #     β_p = sum(rand([1, -1], n) .* D)
-    #     ω_p = sqrt(h^2 + β_p^2) / 2
-    #     cos2_p = cos.(ω_p * t) .^ 2
-    #     f_p = (cos2_p + (cos2_p .- 1) * (β_p^2 - h^2) / (h^2 + β_p^2)) / 2
-    #     f_sum += f_p
-    #     f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    # end
-    # if geterr
-    #     return (f_sum / N, f_var / (N - 1))
-    # else
-    #     return f_sum / N
-    # end
+    if h == 0
+        return [mapreduce(cos, *, D * τ) / 2 for τ in t]
+    else
+        β=betasampling(cluster, N)
+        return fid(t,β,h, geterr=geterr)
+    end
 end
 
 
@@ -257,23 +202,6 @@ function rabi(
 
     β=betasampling(cluster, N)
     return rabi(t, β, h, axis=axis, geterr=geterr)
-    # D = cluster.couplings
-    # n = length(D)
-    # f_sum = zeros(length(t)) # sum
-    # f_var = copy(f_sum) # square sum
-    # f_sampling = (_rabix, _rabiy, _rabiz)[axis]
-
-    # for i = 1:N
-    #     β_p = sum(rand([1, -1], n) .* D)
-    #     f_p = f_sampling(t, β_p, h)
-    #     f_sum += f_p
-    #     f_var += i > 1 ? (i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
-    # end
-    # if geterr
-    #     return (f_sum / N, f_var / (N - 1))
-    # else
-    #     return f_sum / N
-    # end
 end
 
 
@@ -323,14 +251,6 @@ Find the Rabi period of the given ensemble under driving field, using linear reg
 """
 function rabiperiod(ensemble::SpinEnsemble, h::Real = 0; 
     M::Int = 1000, N::Int = 100, λ::Real = 0.1, L::Int = 20) # short length fitting 
-    t0 = π/h
-    t = LinRange(t0*(1-λ),t0*(1+λ), L)
-    curve=-rabi(t, ensemble, h; M=M, N=N, axis=2)
-    # linear regression
-    for i in 2:L
-        if curve[i-1]>0 && curve[i]<0
-            return t[i-1]+curve[i-1]/(curve[i-1]-curve[i])*(t[i]-t[i-1])
-        end
-    end
-    error("zero points not detected")
+    β=betasampling(ensemble, M, N)
+    return rabiperiod(β,h,λ=λ,L=L)
 end
