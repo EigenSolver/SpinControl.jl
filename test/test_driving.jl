@@ -2,18 +2,6 @@ ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
 cluster = SpinCluster(ensemble)
 h=10; t=π/h;
 
-@testset "test pulse rotation" begin
-    P=SquarePulse(h, t)
-    U=rotation(P)
-    @test U isa Matrix
-    @test isunitary(U)
-
-    P=SquarePulse(h, t, [1/√3, 1/√3, 1/√3])
-    U=rotation(P)
-    @test U isa Matrix
-    println("norm: ", norm(U * U' - I))
-    @test isunitary(U)
-end
 
 @testset "test rabi sampling" begin
     ω_p, n_p = rabisampling(h, t, cluster, N=500)
