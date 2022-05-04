@@ -47,6 +47,21 @@ function operation(ρ::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Ma
 end
 
 """
+Given a sampled list of driving strengths and phases, return a list of Kraus operators 
+"""
+function krausoperators(ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
+    c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
+    )::Vector{<:Matrix}
+    
+    return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in 1:length(c)]
+end
+
+function krausoperators(h::Vector{<:Real},  β::AbstractVector{<:Real},
+    c::Vector{<:Real}=normalize!(ones(size(β)), 1), z0::Vector=[0,0,1] )
+    return krausoperators(rabisampling(h, β, z0)..., c)
+end
+
+"""
 Apply quantum operation on density state for given rotaion unitarys
 """
 function operation(ρ::Matrix{<:Number}, ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
@@ -58,19 +73,7 @@ function operation(ρ::Matrix{<:Number}, ϕ::Vector{<:Real}, n::Matrix{<:Real},
     return operation(ρ,krausops)
 end
 
-# rabisampling->krausoperators
 
-"""
-Given a sampled list of driving strengths and phases, return a list of Kraus operators 
-"""
-function krausoperators(ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
-    c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
-    )::Vector{<:Matrix}
-    
-    return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in 1:length(c)]
-end
-
-# rabisampling->paulifidelity
 """
 Get the unitary of a square pulse
 """
