@@ -75,3 +75,17 @@ function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real},
     return F
 end
 
+function carrfidelity(β::AbstractVector{<:Real}, h::Real, τ::Real,
+    c::Vector{<:Real}=normalize!(ones(size(β)),1); ϵ::Real=0)::Real
+    Δ=π/h+ϵ
+    N=length(β)
+    F=0
+    for i in 1:N
+        b=β[i]
+        F+=c[i]/(4*(h^2 + b^2)^2)*(h^2 - h^2*cos(2*b*τ) 
+        - cos(sqrt(h^2 + b^2)*Δ)*(h^2 + (h^2 +2*b^2)*cos(2*b*τ)) 
+        + 2*b*sqrt(h^2 + b^2)*sin(sqrt(h^2 + b^2)*Δ)*sin(2*b*τ))^2
+        F+=0
+    end
+    return F
+end

@@ -81,4 +81,12 @@ end
     @time f1=processfidelity([1 0; 0 1], kops)
     @time f2=entanglementfidelity([1 0; 0 1], kops)
     @test abs(f1-(2*f2+1)/3)<1e-5
+
+    seq2=CP(20,2)
+    kops=krausoperators(seq2,β)
+    @time f1=carrfidelity(β,20,2)
+    @time f2=entanglementfidelity([1 0; 0 1], kops)
+    println("CP fidelity:", f1)
+    println("CP fidelity:", f2)
+    @test abs(f1-f2)<1e-5
 end
