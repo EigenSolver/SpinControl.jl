@@ -63,7 +63,8 @@ Return the entanglement fidelity of pauli gates (X,Y,Z) for given driving parame
 """
 # add error !!
 function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
-    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180)
+    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180,
+    geterr::Bool=false)
     
     if phase==:_180
         F_c = (n_k[:, axis].*sin.(ϕ_k./2)).^2 
@@ -75,9 +76,12 @@ function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real},
     end
 
     F = c_k .* F_c |>sum 
-    F_std = sqrt.(c_k .* (F_c .- F).^2) ./ length(c_k[c_k .!=0 ])
-
-    return F, F_std
+    if geterr
+        F_std = sqrt.(c_k .* (F_c .- F).^2) ./ length(c_k[c_k .!=0 ])
+        return F, F_std
+    else
+        return F
+    end
 end
 
 function carrfidelity(β::AbstractVector{<:Real}, h::Real, τ::Real,
@@ -111,11 +115,12 @@ end
 function xyfidelity(b::Real, h::Real, τ::Real, ϵ::Real=0)::Real
     Δ=π/h+ϵ
     Ω=sqrt(b^2+h^2)
-    F=(1/(64*(h^2 + b^2)^4))((-5*h^4 - 8*h^2*b^2 + 
-3*h^4*cos(4*b*τ) + 8*h^2*(h^2 + 2*b^2)*cos(2*b*τ)^2 *cos(Δ*Ω) 
-  + (h^4+ (h^4 + 8*h^2*b^2 + 8* b^4)*cos(4*b*τ)) *cos(2*Δ*Ω) - 
-  2*h^2 *b*Ω*cos(4*b*τ - 2*Δ*Ω) - 4*b^3*Ω*cos(4*b*τ - 2*Δ*Ω) - 
-  4*h^2 *b*Ω*cos(4*b*τ - Δ*Ω) + 4*h^2*b*Ω*cos(4*b*τ + Δ*Ω) + 
-  2*h^2 *b*Ω*cos(4*b*τ + 2*Δ*Ω) + 4*b^3*Ω*cos(4*b*τ + 2*Δ*Ω))^2)
-  return F
+    F=1/(64*(h^2 + b^2)^4)*
+    (-5*h^4 - 8*h^2*b^2 + 3*h^4*cos(4*b*τ) + 
+    8*h^2*(h^2 + 2*b^2)*cos(2*b*τ)^2 *cos(Δ*Ω) + 
+    (h^4+ (h^4 + 8*h^2*b^2 + 8* b^4)*cos(4*b*τ)) *cos(2*Δ*Ω) - 
+    2*h^2 *b*Ω*cos(4*b*τ - 2*Δ*Ω) - 4*b^3*Ω*cos(4*b*τ - 2*Δ*Ω) - 
+    4*h^2 *b*Ω*cos(4*b*τ - Δ*Ω) + 4*h^2*b*Ω*cos(4*b*τ + Δ*Ω) + 
+    2*h^2 *b*Ω*cos(4*b*τ + 2*Δ*Ω) + 4*b^3*Ω*cos(4*b*τ + 2*Δ*Ω))^2
+    return F
 end

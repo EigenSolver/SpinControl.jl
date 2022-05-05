@@ -13,6 +13,6 @@ include("fidelities.jl")
 
 export operation, unitary, rotation, krausoperators, isunitary
 export statefidelity, processfidelity, entanglementfidelity, paulifidelity
-export carrfidelity
+export carrfidelity, xyfidelity
 
 end
