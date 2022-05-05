@@ -61,22 +61,27 @@ end
 """
 Return the entanglement fidelity of pauli gates (X,Y,Z) for given driving parameters
 """
+# add error !!
 function paulifidelity(ϕ_k::Vector{<:Real}, n_k::Matrix{<:Real}, 
-    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180)::Real
+    c_k::Vector{<:Real}=normalize!(ones(size(ϕ_k)),1); axis::Int = 1, phase::Symbol=:_180)
     
     if phase==:_180
-        F = c_k .* (n_k[:, axis].*sin.(ϕ_k./2)).^2 |> sum
+        F_c = (n_k[:, axis].*sin.(ϕ_k./2)).^2 
+
     elseif phase==:_90
-        F = c_k/2 .* (cos.(ϕ_k./2) - n_k[:, axis].*sin.(ϕ_k./2)).^2 |> sum
+        F_c = 1/2 .* (cos.(ϕ_k./2) - n_k[:, axis].*sin.(ϕ_k./2)).^2 
     else
         error("invalid phase")
     end
 
-    return F
+    F = c_k .* F_c |>sum 
+    F_std = sqrt.(c_k .* (F_c .- F).^2) ./ length(c_k[c_k .!=0 ])
+
+    return F, F_std
 end
 
 function carrfidelity(β::AbstractVector{<:Real}, h::Real, τ::Real,
-    c::Vector{<:Real}=normalize!(ones(size(β)),1); ϵ::Real=0)::Real
+    c::Vector{<:Real}=normalize!(ones(size(β)),1); ϵ::Real=0)
     N=length(β)
     F=0
     for i in 1:N
@@ -90,4 +95,27 @@ function carrfidelity(b::Real, h::Real, τ::Real, ϵ::Real=0)::Real
     return 1/(4*(h^2 + b^2)^2)*(h^2 - h^2*cos(2*b*τ) 
     - cos(sqrt(h^2 + b^2)*Δ)*(h^2 + (h^2 +2*b^2)*cos(2*b*τ)) 
     + 2*b*sqrt(h^2 + b^2)*sin(sqrt(h^2 + b^2)*Δ)*sin(2*b*τ))^2
+end
+
+function xyfidelity(β::AbstractVector{<:Real}, h::Real, τ::Real,
+    c::Vector{<:Real}=normalize!(ones(size(β)),1); ϵ::Real=0)
+    N=length(β)
+    F=0
+    for i in 1:N
+        F+=c[i]*xyfidelity(β[i],h,τ,ϵ)
+    end
+    return F
+end
+
+
+function xyfidelity(b::Real, h::Real, τ::Real, ϵ::Real=0)::Real
+    Δ=π/h+ϵ
+    Ω=sqrt(b^2+h^2)
+    F=(1/(64*(h^2 + b^2)^4))((-5*h^4 - 8*h^2*b^2 + 
+3*h^4*cos(4*b*τ) + 8*h^2*(h^2 + 2*b^2)*cos(2*b*τ)^2 *cos(Δ*Ω) 
+  + (h^4+ (h^4 + 8*h^2*b^2 + 8* b^4)*cos(4*b*τ)) *cos(2*Δ*Ω) - 
+  2*h^2 *b*Ω*cos(4*b*τ - 2*Δ*Ω) - 4*b^3*Ω*cos(4*b*τ - 2*Δ*Ω) - 
+  4*h^2 *b*Ω*cos(4*b*τ - Δ*Ω) + 4*h^2*b*Ω*cos(4*b*τ + Δ*Ω) + 
+  2*h^2 *b*Ω*cos(4*b*τ + 2*Δ*Ω) + 4*b^3*Ω*cos(4*b*τ + 2*Δ*Ω))^2)
+  return F
 end
