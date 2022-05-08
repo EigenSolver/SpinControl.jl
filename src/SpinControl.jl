@@ -10,9 +10,11 @@ include("ensembles/SpinEnsembles.jl")
 
 include("operations.jl")
 include("fidelities.jl")
+include("controldynamics.jl")
 
-export operation, unitary, rotation, krausoperators, isunitary
+export operate, unitary, rotation, krausoperators, isunitary
 export statefidelity, processfidelity, entanglementfidelity, paulifidelity
 export carrfidelity, xyfidelity
+export deploy 
 
 end

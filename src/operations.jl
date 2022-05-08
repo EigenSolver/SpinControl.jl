@@ -12,10 +12,25 @@
 ## unitarys
 isunitary(U::Matrix{<:Number})::Bool =  norm(U' * U- I)<1e-6
 
+
+"""
+Evolve a quantum state or density matrix for given unitary
+"""
+function evolution(ψ::Vector{<:Number}, U::Matrix{<:Number})
+    return U*ψ
+end
+
+function evolution(ρ::Matrix{<:Number}, U::Matrix{<:Number})
+    # @assert isunitary(U)
+    # @assert abs(tr(ρ)-1)<1e6
+    return U*ρ*U'
+end
+
+
 """
 Get the rotation unitary for given driving phase and axis
 """
-function rotation(phi::Real, n::Vector{<:Real})::Matrix{<:Number}
+function rotation(phi::Real, n::Vector{<:Real})::Matrix{ComplexF64}
     # @assert abs(norm(n)-1)<1e-4
     σ_n = mapreduce(i -> n[i] * σ_vec[i], .+, 1:3)
     return cos(phi/2)*σ_i - 1im*sin(phi/2)*σ_n # \Oemga t/2 !!!
@@ -24,7 +39,7 @@ end
 """
 Get the rotation unitary for given driving vector and time
 """
-function rotation(h::Vector{<:Real}, t::Real)::Matrix{<:Number}
+function rotation(h::Vector{<:Real}, t::Real)::Matrix{ComplexF64}
     Ω=norm(h); 
     if Ω==0
         return σ_i
@@ -38,7 +53,7 @@ end
 """
 Apply quantum operation on density state for given Kraus operators
 """
-function operation(ρ::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Matrix{<:Number}
+function operate(ρ::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Matrix{ComplexF64}
     P=zeros(size(ρ))
     for E in krausops
         P+=E*ρ*E'
@@ -64,50 +79,19 @@ end
 """
 Apply quantum operation on density state for given rotaion unitarys
 """
-function operation(ρ::Matrix{<:Number}, ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
+function operate(ρ::Matrix{<:Number}, ϕ::Vector{<:Real}, n::Matrix{<:Real}, 
     c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
-    )::Matrix{<:Number}
+    )::Matrix{ComplexF64}
 
     c=normalize(c,1)
     krausops=krausoperators(ϕ,n,c)
-    return operation(ρ,krausops)
+    return operate(ρ,krausops)
 end
 
-
-"""
-Get the unitary of a square pulse
-"""
-
-function unitary(pulse::SquarePulse, β::Real=0, z0::Vector{<:Real}=[0,0,1])::Matrix{<:Number}
-    return rotation(pulse.aim.*pulse.h + z0.*β, pulse.t)
+function measure(A::Matrix{<:Number}, ρ::Matrix{<:Number})::Real
+    return tr(A*ρ)|>real
 end
 
-function unitary(pulse::Idle, β::Real=0, z0::Vector{<:Real}=[0,0,1])
-    return rotation(z0.*β, pulse.t)
-end
-
-function unitary(seq::Sequence, β::Real=0, z0::Vector{<:Real}=[0,0,1])
-    U0=unitary(seq.idle,β,z0)
-    Un=[unitary(g,β,z0) for g in seq.gates]
-    V=σ_i
-    for i in seq.order
-        U= i==0 ? U0 : (sign(i)>0 ? Un[abs(i)] : Un[abs(i)]')
-        V=U*V
-    end
-    return V
-end
-
-function krausoperators(pulse::Pulse, β::AbstractVector{<:Real},
-    c::Vector{<:Real}=normalize!(ones(size(β)), 1),
-    z0::Vector{<:Real}=[0,0,1]
-    )::Vector{<:Matrix}
-    return sqrt.(c).*[unitary(pulse, β_k, z0) for β_k in β]
-end
-
-function krausoperators(seq::Sequence, β::AbstractVector{<:Real},
-    c::Vector{<:Real}=normalize!(ones(size(β)), 1),
-    z0::Vector{<:Real}=[0,0,1]
-    )::Vector{<:Matrix}
-    
-    return sqrt.(c).*[unitary(seq, β_k, z0) for β_k in β]
+function measure(A::Matrix{<:Number}, ψ::Vector{<:Number})::Real
+    return tr(ψ' *A *ψ)|>real
 end
