@@ -12,7 +12,7 @@ include("operations.jl")
 include("fidelities.jl")
 include("controldynamics.jl")
 
-export operate, unitary, rotation, krausoperators, isunitary
+export operate, unitary, rotation, krausoperators, isunitary, measure
 export statefidelity, processfidelity, entanglementfidelity, paulifidelity
 export carrfidelity, xyfidelity
 export deploy 
