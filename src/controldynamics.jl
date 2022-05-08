@@ -1,3 +1,5 @@
+import ProgressMeter: Progress, update!
+
 function unitary(pulse::SquarePulse, β::Real=0, z0::Vector{<:Real}=[0,0,1])
     return rotation(pulse.aim.*pulse.h + z0.*β, pulse.t)
 end
@@ -82,6 +84,8 @@ function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real
     global p=1;
     ρ_arr[p]=ρ
 
+    progress_bar=Progress(N*cycle, 0.5)
+
     for k in 1:cycle
         for i in seq.order
             if i==0
@@ -96,6 +100,7 @@ function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real
                 p+=1
                 ρ_arr[p] = ρ
             end
+            update!(progress_bar, p)
         end
     end
     

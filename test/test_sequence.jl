@@ -32,7 +32,7 @@
 
 @testset "test noisy sequence" begin
     ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
-    β=betasampling(ensemble, M=50,N=10)
+    β=betasampling(ensemble, M=500,N=100)
     seq1=XY(30,0.2)
     println("kraus ops time:")
     @time kops=krausoperators(seq1,β)
