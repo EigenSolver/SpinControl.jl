@@ -42,11 +42,12 @@ function deploy(ψ::Vector{<:Number}, seq::Sequence, n::Int, β::Real,
     U0=unitary(Idle(dt),β,z0)
     Un=map(g->unitary(g,β,z0), seq.gates)
     
-    t_arr= cycleslice(seq,n)
-    N=length(t_arr)
+    t_cycle= cycleslice(seq,n)
+    t_c=cycletime(seq)
+    N=length(t_cycle)
 
-    ψ_arr = Vector{Vector{ComplexF64}}(undef,N*cycle)
-    global p=1;
+    ψ_arr = Vector{Vector{ComplexF64}}(undef,1+(N-1)*cycle)
+    p=1;
     ψ_arr[p]=ψ
 
     for k in 1:cycle
@@ -65,7 +66,7 @@ function deploy(ψ::Vector{<:Number}, seq::Sequence, n::Int, β::Real,
             end
         end
     end
-    t_arr=vcat([t_arr .* i for i in cycle]...)
+    t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
     return t_arr, ψ_arr
 end
 
@@ -77,11 +78,12 @@ function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real
     krops0=krausoperators(Idle(dt),β,c,z0)
     kropsn=map(g->krausoperators(g,β,c, z0), seq.gates)
     
-    t_arr= cycleslice(seq,n)
-    N=length(t_arr)
+    t_cycle= cycleslice(seq,n)
+    t_c=cycletime(seq)
+    N=length(t_cycle)
 
-    ρ_arr = Vector{Matrix{ComplexF64}}(undef,N*cycle)
-    global p=1;
+    ρ_arr = Vector{Matrix{ComplexF64}}(undef,1+(N-1)*cycle)
+    p=1;
     ρ_arr[p]=ρ
 
     progress_bar=Progress(N*cycle, 0.5)
@@ -104,6 +106,6 @@ function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real
         end
     end
     
-    t_arr=vcat([t_arr .* i for i in cycle]...)
+    t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
     return t_arr, ρ_arr
 end
