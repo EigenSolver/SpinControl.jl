@@ -21,3 +21,5 @@ function YX(h::Real,τ::Real, δ::Real=0; symmetry::Bool=false)
         return SquareSequence(h, τ, δ, reverse!(order_xy))
     end
 end
+
+WAHUHA(h::Real,τ::Real, δ::Real=0)=SquareSequence(h, τ, δ, [0,-4,0,5,0,0,-5,0,4,0])

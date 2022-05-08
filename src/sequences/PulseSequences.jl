@@ -1,7 +1,7 @@
 module PulseSequences
 
 export Pulse, Idle, SquarePulse, SquareGates, Sequence, SquareSequence
-export CP, CPMG, APCP, APCPMG, XY, YX
+export CP, CPMG, APCP, APCPMG, XY, YX, WAHUHA
 export cycletime, cycleslice
 
 abstract type Pulse end
