@@ -41,7 +41,7 @@ end
 #     @assert isunitary(U) 
 #     F=1/4
 #     for ρ_0 in [σ_x, σ_y, σ_z]
-#         F+=tr(U*ρ_0'*U' * operation(ρ_0,krausops))/8
+#         F+=tr(U*ρ_0'*U' * operate(ρ_0,krausops))/8
 #     end
 #     return F
 # end

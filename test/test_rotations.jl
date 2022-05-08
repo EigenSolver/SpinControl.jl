@@ -38,8 +38,8 @@ end
     h=10; t=π/h; aim=[1,0,0]
 
     ϕ_p, n_p = rabisampling(h, t, cluster, aim, N=1000)
-    @time P = operation(ρ, ϕ_p, n_p)
-    @time P = operation(ρ, ϕ_p, n_p)
+    @time P = operate(ρ, ϕ_p, n_p)
+    @time P = operate(ρ, ϕ_p, n_p)
 
     println("trace: ", tr(P))
     @test isunitary(P)==false
