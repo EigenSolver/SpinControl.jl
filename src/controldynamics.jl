@@ -95,7 +95,7 @@ function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real
                     ρ_arr[p] = ρ
                 end
             else
-                krops = sign(i)>0 ? kropsn[abs(i)] : kropsn[abs(i)]'
+                krops = sign(i)>0 ? kropsn[abs(i)] : map(adjoint, kropsn[abs(i)])
                 ρ=operate(ρ,krops)
                 p+=1
                 ρ_arr[p] = ρ

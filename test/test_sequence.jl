@@ -30,10 +30,39 @@
 #     @test norm(I3-I)<1e-5
 # end
 
-@testset "test noisy sequence" begin
+# @testset "test XY sequence" begin
+#     ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
+#     β=betasampling(ensemble, M=500,N=100)
+#     seq1=XY(30,0.2)
+#     println("kraus ops time:")
+#     @time kops=krausoperators(seq1,β)
+#     ρ=[1 -im; im 1]/2
+
+#     println("operation time:")
+#     ρt=operate(ρ, kops)
+#     # println(ρt)
+#     f=statefidelity(ρ,ρt)
+#     println("fidelity:", f)
+
+
+#     println("trace time:")
+#     ψ=[1, im]/sqrt(2)
+#     @time t_arr, ψ_arr= deploy(ψ, seq1, 5, β[1])
+#     @test length(t_arr)==length(ψ_arr)
+#     @time t_arr, ψ_arr= deploy(ψ, seq1, 5, β[1], cycle=20)
+#     @test length(t_arr)*20==length(ψ_arr)
+
+#     @time t_arr, ρ_arr= deploy(ρ, seq1, 5, β)
+#     @test length(t_arr)==length(ρ_arr)
+#     @time t_arr, ρ_arr= deploy(ρ, seq1, 5, β, cycle=2)
+#     @test length(t_arr)*2==length(ρ_arr)
+    
+# end
+
+@testset "test WAHUHA sequence" begin
     ensemble = SpinEnsemble(0.39486, 3, [0, 0, 1], 0.1, 10, :spherical)
     β=betasampling(ensemble, M=500,N=100)
-    seq1=XY(30,0.2)
+    seq1=WAHUHA(30,0.2)
     println("kraus ops time:")
     @time kops=krausoperators(seq1,β)
     ρ=[1 -im; im 1]/2
@@ -43,7 +72,6 @@
     # println(ρt)
     f=statefidelity(ρ,ρt)
     println("fidelity:", f)
-
 
     println("trace time:")
     ψ=[1, im]/sqrt(2)

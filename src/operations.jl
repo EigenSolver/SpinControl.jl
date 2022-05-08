@@ -61,6 +61,14 @@ function operate(ρ::Matrix{<:Number}, krausops::AbstractVector{<:Matrix})::Matr
     return P
 end
 
+function operate(ρ::Matrix{<:Number}, krausops::Vector{Adjoint{ComplexF64, Matrix{ComplexF64}}})::Matrix{ComplexF64}
+    P=zeros(size(ρ))
+    for E in krausops
+        P+=E*ρ*E'
+    end
+    return P
+end
+
 """
 Given a sampled list of driving strengths and phases, return a list of Kraus operators 
 """
