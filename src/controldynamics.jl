@@ -36,8 +36,8 @@ function krausoperators(seq::Sequence, β::AbstractVector{<:Real},
     return sqrt.(c).*[unitary(seq, β_k, z0) for β_k in β]
 end
 
-function deploy(ψ::Vector{<:Number}, seq::Sequence, n::Int, β::Real, 
-    z0::Vector{<:Real}=[0,0,1]; cycle::Int=1)
+function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence, n::Int, β::Real, 
+    z0::Vector{<:Real}=[0,0,1]; cycle::Int=1, gettime::Bool=false)
     dt=seq.idle.t/n
     U0=unitary(Idle(dt),β,z0)
     Un=map(g->unitary(g,β,z0), seq.gates)
@@ -46,7 +46,8 @@ function deploy(ψ::Vector{<:Number}, seq::Sequence, n::Int, β::Real,
     t_c=cycletime(seq)
     N=length(t_cycle)
 
-    ψ_arr = Vector{Vector{ComplexF64}}(undef,1+(N-1)*cycle)
+    T=typeof(ψ)
+    ψ_arr = Vector{T}(undef,1+(N-1)*cycle)
     p=1;
     ψ_arr[p]=ψ
 
@@ -54,56 +55,33 @@ function deploy(ψ::Vector{<:Number}, seq::Sequence, n::Int, β::Real,
         for i in seq.order
             if i==0
                 for j in 1:n
-                    ψ=U0*ψ
+                    ψ=evolve(ψ, U0)
                     p+=1
                     ψ_arr[p] = ψ
                 end
             else
                 U= sign(i)>0 ? Un[abs(i)] : Un[abs(i)]'
-                ψ=U*ψ
+                ψ=evolve(ψ, U)
                 p+=1
                 ψ_arr[p] = ψ
             end
         end
     end
-    t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
-    return t_arr, ψ_arr
+    if gettime
+        t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
+        return t_arr, ψ_arr
+    else
+        return ψ_arr
+    end
 end
 
 
 function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real}, 
     c::Vector{<:Real}=normalize!(ones(size(β)), 1), z0::Vector{<:Real}=[0,0,1]; cycle::Int=1)
-    
-    dt=seq.idle.t/n
-    krops0=krausoperators(Idle(dt),β,c,z0)
-    kropsn=map(g->krausoperators(g,β,c, z0), seq.gates)
-    
-    t_cycle= cycleslice(seq,n)
-    t_c=cycletime(seq)
-    N=length(t_cycle)
 
-    ρ_arr = Vector{Matrix{ComplexF64}}(undef,1+(N-1)*cycle)
-    p=1;
-    ρ_arr[p]=ρ
-
-    progress_bar=Progress(N*cycle, 0.5)
-
-    for k in 1:cycle
-        for i in seq.order
-            if i==0
-                for j in 1:n
-                    ρ=operate(ρ,krops0)
-                    p+=1
-                    ρ_arr[p] = ρ
-                end
-            else
-                krops = sign(i)>0 ? kropsn[abs(i)] : map(adjoint, kropsn[abs(i)])
-                ρ=operate(ρ,krops)
-                p+=1
-                ρ_arr[p] = ρ
-            end
-            update!(progress_bar, p)
-        end
+    ρ_arr = Vector{Matrix{ComplexF64}}([0.0im 0; 0 0],1+(N-1)*cycle)
+    @showprogress for k in 1:length(β)
+        ρ_arr= ρ_arr .+ c[k].*deploy(ρ, seq, n, β[k], z0)
     end
     
     t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
