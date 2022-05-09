@@ -16,11 +16,11 @@ isunitary(U::Matrix{<:Number})::Bool =  norm(U' * U- I)<1e-6
 """
 Evolve a quantum state or density matrix for given unitary
 """
-function evolve(ψ::Vector{<:Number}, U::Matrix{<:Number})
+function evolve(ψ::Vector{<:Number}, U::AbstractMatrix{<:Number})
     return U*ψ
 end
 
-function evolve(ρ::Matrix{<:Number}, U::Matrix{<:Number})
+function evolve(ρ::Matrix{<:Number}, U::AbstractMatrix{<:Number})
     # @assert isunitary(U)
     # @assert abs(tr(ρ)-1)<1e6
     return U*ρ*U'

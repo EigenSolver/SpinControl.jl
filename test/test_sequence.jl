@@ -44,20 +44,18 @@ end
     f=statefidelity(ρ,ρt)
     println("fidelity:", f)
 
-
     println("trace time:")
     ψ=[1, im]/sqrt(2)
     @time t_arr, ψ_arr= deploy(ψ, seq1, 5, β[1])
     @test length(t_arr)==length(ψ_arr)
     @time t_arr, ψ_arr= deploy(ψ, seq1, 5, β[1], cycle=20)
-    @test length(t_arr)*20==length(ψ_arr)
+    @test length(t_arr)==length(ψ_arr)
 
     @time t_arr, ρ_arr= deploy(ρ, seq1, 5, β)
     @test length(t_arr)==length(ρ_arr)
 
     @time t_arr, ρ_arr= deploy(ρ, seq1, 5, β, cycle=2)
     @test length(t_arr)==length(ρ_arr)
-    
 end
 # using Plots
 
@@ -68,7 +66,7 @@ end
     println("kraus ops time:")
     @time kops=krausoperators(seq1,β)
     ρ=[1 -im; im 1]/2
-
+    
     println("operation time:")
     ρt=operate(ρ, kops)
     # println(ρt)

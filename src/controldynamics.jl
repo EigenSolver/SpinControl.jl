@@ -1,4 +1,4 @@
-import ProgressMeter: Progress, update!
+import ProgressMeter: @showprogress
 
 function unitary(pulse::SquarePulse, β::Real=0, z0::Vector{<:Real}=[0,0,1])
     return rotation(pulse.aim.*pulse.h + z0.*β, pulse.t)
@@ -43,9 +43,8 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
     Un=map(g->unitary(g,β,z0), seq.gates)
     
     t_cycle= cycleslice(seq,n)
-    t_c=cycletime(seq)
-    N=length(t_cycle)
-
+    N=length(t_cycle)   
+    
     T=typeof(ψ)
     ψ_arr = Vector{T}(undef,1+(N-1)*cycle)
     p=1;
@@ -67,7 +66,8 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
             end
         end
     end
-    if gettime
+    if gettime 
+        t_c=cycletime(seq)
         t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
         return t_arr, ψ_arr
     else
@@ -78,10 +78,14 @@ end
 
 function deploy(ρ::Matrix{ComplexF64}, seq::Sequence, n::Int, β::Vector{<:Real}, 
     c::Vector{<:Real}=normalize!(ones(size(β)), 1), z0::Vector{<:Real}=[0,0,1]; cycle::Int=1)
-
-    ρ_arr = Vector{Matrix{ComplexF64}}([0.0im 0; 0 0],1+(N-1)*cycle)
+    
+    t_cycle= cycleslice(seq,n)
+    t_c=cycletime(seq)
+    N=length(t_cycle)
+    
+    ρ_arr = [[0.0im 0; 0 0] for i in 1:(1+(N-1)*cycle)]
     @showprogress for k in 1:length(β)
-        ρ_arr= ρ_arr .+ c[k].*deploy(ρ, seq, n, β[k], z0)
+        ρ_arr= ρ_arr .+ c[k].*deploy(ρ, seq, n, β[k], z0, cycle=cycle, gettime=false)
     end
     
     t_arr = append!(t_cycle, [t_cycle[2:end] .+ i*t_c for i in 1:cycle-1]...)
