@@ -19,10 +19,12 @@ end
 
 function unitary(seq::Sequence, β::Real=0, z0::Vector{<:Real}=[0,0,1])
     U0=unitary(seq.idle,β,z0)
-    Un=[unitary(g,β,z0) for g in seq.gates]
+    Up=[unitary(g,β,z0) for g in seq.gates]
+    Un=[unitary(g,β,-z0)' for g in seq.gates]
+
     V=σ_i
     for i in seq.order
-        U= i==0 ? U0 : (sign(i)>0 ? Un[abs(i)] : Un[abs(i)]')
+        U= i==0 ? U0 : (sign(i)>0 ? Up[abs(i)] : Un[abs(i)])
         V=U*V
     end
     return V
@@ -41,7 +43,7 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
     dt=seq.idle.t/n
     U0=unitary(Idle(dt),β,z0)
     Up=map(g->unitary(g,β,z0), seq.gates)
-    Un=map(g->unitary(g,β,-z0), seq.gates)
+    Un=map(g->unitary(g,β,-z0)', seq.gates)
     
     t_cycle= cycleslice(seq,n)
     N=length(t_cycle)   
@@ -60,7 +62,7 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
                     ψ_arr[p] = ψ
                 end
             else
-                U= sign(i)>0 ? Up[abs(i)] : Un[abs(i)]'
+                U= sign(i)>0 ? Up[abs(i)] : Un[abs(i)]
                 ψ=evolve(ψ, U)
                 p+=1
                 ψ_arr[p] = ψ
