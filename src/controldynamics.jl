@@ -40,7 +40,8 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
     z0::Vector{<:Real}=[0,0,1]; cycle::Int=1, gettime::Bool=false)
     dt=seq.idle.t/n
     U0=unitary(Idle(dt),β,z0)
-    Un=map(g->unitary(g,β,z0), seq.gates)
+    Up=map(g->unitary(g,β,z0), seq.gates)
+    Un=map(g->unitary(g,β,-z0), seq.gates)
     
     t_cycle= cycleslice(seq,n)
     N=length(t_cycle)   
@@ -59,7 +60,7 @@ function deploy(ψ::Union{Vector{ComplexF64},Matrix{ComplexF64}}, seq::Sequence,
                     ψ_arr[p] = ψ
                 end
             else
-                U= sign(i)>0 ? Un[abs(i)] : Un[abs(i)]'
+                U= sign(i)>0 ? Up[abs(i)] : Un[abs(i)]'
                 ψ=evolve(ψ, U)
                 p+=1
                 ψ_arr[p] = ψ

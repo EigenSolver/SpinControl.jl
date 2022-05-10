@@ -1,6 +1,6 @@
 module PulseSequences
 
-export Pulse, Idle, SquarePulse, SquareGates, Sequence, SquareSequence
+export Pulse, Idle, SquarePulse, SquareGates, Sequence, SquareSequence, GeneralSequence
 export CP, CPMG, APCP, APCPMG, XY, YX, WAHUHA
 export cycletime, cycleslice
 
