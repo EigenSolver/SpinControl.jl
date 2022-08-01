@@ -76,7 +76,7 @@ function krausoperators(ϕ::Vector{<:Real}, n::Matrix{<:Real},
     c::Vector{<:Real}=normalize!(ones(size(ϕ)), 1) 
     )::Vector{<:Matrix}
     
-    return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in 1:length(c)]
+    return [sqrt(c[i])*rotation(ϕ[i], n[i, :]) for i in eachindex(c)]
 end
 
 function krausoperators(h::Vector{<:Real},  β::AbstractVector{<:Real},

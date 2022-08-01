@@ -120,7 +120,6 @@ function betasampling(ensemble::SpinEnsemble, M::Int = 1, N::Int = 1)
     return sampling
 end
 
-betasampling(ensemble::SpinEnsemble; M::Int = 1, N::Int = 1)=betasampling(ensemble, M, N)
 
 mutable struct SpinCluster
     ensemble::SpinEnsemble
