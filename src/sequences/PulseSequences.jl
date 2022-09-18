@@ -1,4 +1,5 @@
 module PulseSequences
+import SpecialFunctions: erf
 
 export Pulse, Idle, SquarePulse, SquareGates, Sequence, SquareSequence, GeneralSequence
 export CP, CPMG, APCP, APCPMG, XY, YX, WAHUHA
@@ -23,8 +24,17 @@ struct SquarePulse<:Pulse
     end
 end
 
-# TBD
 struct GaussianPulse<:Pulse
+    h::Real
+    t::Real
+    aim::Vector{Real}
+    phi::Float64
+
+    function GaussianPulse(h::Real, t::Real, aim::Vector{<:Real} = [1, 0, 0])
+        @assert length(aim) == 3
+        phi=(-erf((3*sqrt(2)*(h-t/2))/t)+erf((3*sqrt(2)*(h+t/2))/t))/2
+        return new(h, t, aim, phi) # h equals Rabi frequency at ideal limit!
+    end
 end
 
 #TBD
