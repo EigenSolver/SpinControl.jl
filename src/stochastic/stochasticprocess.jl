@@ -5,7 +5,7 @@ function OrnsteinUhlenbeckNoise(n::Int, dt::Real, params::Union{Tuple,AbstractVe
     if X₀ == -1
         X₀ = σ*randn()
     end
-    OU=OrnsteinUhlenbeckProcess!(θ,μ,σ,0.0, convert(Float64, X₀))
+    OU=OrnsteinUhlenbeckProcess(θ,μ,σ,0.0, convert(Float64, X₀))
     OU.dt=dt
     u = nothing; p= nothing;
     calculate_step!(OU, dt, u, p)
