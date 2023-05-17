@@ -18,5 +18,8 @@ export statefidelity, processfidelity, entanglementfidelity, paulifidelity
 export carrfidelity, xyfidelity
 export deploy 
 
+include("stochastic/stochasticprocess.jl")
+export OrnsteinUhlenbeckNoise
+
 end
     

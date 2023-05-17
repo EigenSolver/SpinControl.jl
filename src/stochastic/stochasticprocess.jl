@@ -1,16 +1,19 @@
 using DiffEqNoiseProcess
 
-function OrnsteinUhlenbeckNoise(n::Int, dt::Real, params::Union{Tuple,AbstractVector{<:Real}})::NoiseProcess
-    θ, μ, σ = params
-    OU=OrnsteinUhlenbeckProcess(θ,μ,σ,0.0,0.0)
+function OrnsteinUhlenbeckNoise(n::Int, dt::Real, params::Union{Tuple,AbstractVector{<:Real}}, X₀::Real = 0)::NoiseProcess
+    θ, μ, σ, = params
+    if X₀ == -1
+        X₀ = σ*randn()
+    end
+    OU=OrnsteinUhlenbeckProcess(θ,μ,σ,0.0, convert(Float64, X₀))
     OU.dt=dt
-    calculate_step!(OU, dt, nothing, nothing)
+    u = nothing; p= nothing;
+    calculate_step!(OU, dt, u, p)
     for i in 1:n
-        accept_step!(OU,dt, nothing, nothing)
+        accept_step!(OU,dt, u, p)
     end
     return OU
 end
-
 
 
 function unitary(noise::NoiseProcess, axis::Int=3)::Vector{<:Matrix}
@@ -21,14 +24,13 @@ function unitary(noise::NoiseProcess, axis::Int=3)::Vector{<:Matrix}
     return [rotation(phi, n) for phi in phi_acc]
 end
 
-
 function fid(noise::NoiseProcess)
     dt=noise.dt 
     phi=cumsum(noise.u)*dt
-    return cos.(2*phi)
+    return cos.(phi)
 end
 
-function rabi(noise::NoiseProcess, h::Union{Real,AbstractVector{<:Real}})
+function rabi(noise::NoiseProcess, h::Union{<:Real,AbstractVector{<:Real}})
     """
     Rabi oscillation with noise trace at z direction. Driving field at arbitrary vector h. 
     """
@@ -39,10 +41,13 @@ function rabi(noise::NoiseProcess, h::Union{Real,AbstractVector{<:Real}})
         h=[h,0,0]
     end
     
+    n=length(noise.u)
     proj_z=zeros(n)
     for i in 1:n 
         proj_z[i]=f(ρ)
-        U=rotation(h.+ [0, 0, noise[i]], dt)
+        U=rotation(h.+ [0, 0, noise[i]], noise.dt)
         ρ=U*ρ*U'
     end
+
+    return proj_z
 end

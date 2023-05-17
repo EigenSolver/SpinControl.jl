@@ -9,4 +9,5 @@ using LinearAlgebra
 # include("test_rotations.jl")
 # include("test_fidelity.jl")
 # include("test_pulse.jl")
-include("test_sequence.jl")
+# include("test_sequence.jl")
+include("test_stochastic.jl")

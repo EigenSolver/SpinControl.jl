@@ -12,4 +12,11 @@ include("../src/stochastic/stochasticprocess.jl")
 
     @test length(ou.u) == n+1
     @test ou isa NoiseProcess
+
+    unitary(ou)
+    dephase_curve=fid(ou)
+    @test length(dephase_curve)==n+1
+    
+    rabi_curve=rabi(ou, 100)
+    @test length(rabi_curve)==n+1
 end
