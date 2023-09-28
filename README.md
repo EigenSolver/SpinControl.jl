@@ -6,6 +6,12 @@ The package provides necessary data types for spin ensembles and control pulses,
 
 Users can easily use these abstractions to build their own control pulse sequences such as dynamical decoupling protocols and test their performance on various spin ensembles.
 
+**The package is archived as the support material of my master thesis.**
+
+**[Quantum Control of Interacting Spins, Y.N.Zhang, Technische Universiteit Delft](http://resolver.tudelft.nl/uuid:9673e6ba-ff3e-402d-938c-f8d10508cddf)**
+
+https://doi.org/10.4121/19766887
+
 ## Spin Ensemble
 
 - Spin 1/2, randomly distributed, positional disorder.
@@ -31,12 +37,10 @@ Users can easily use these abstractions to build their own control pulse sequenc
 
 ## Quantum Information
 
-- Effective characterization of gate and operation fidelity, via sampling.
+- Effective characterization of gate and operation fidelity.
 - Realistic gate design.
 
 ## Development Schedule
-
-**The package is currently under developing.**
 
 1. Fast prototype and draft documentation v0.1.0
 2. `SpinEnsemble` type and method, v0.2.0
