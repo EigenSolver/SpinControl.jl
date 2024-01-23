@@ -1,10 +1,9 @@
 # SpinControl.jl
 
-**SpinControl.jl** is a numerical package written in Julia that makes it easy to simulate the decoherence process and analyze the dynamical decoupling protocols in interacting spin ensembles.
+**SpinControl.jl** is a numerical package written in Julia that makes it easy to simulate the dynamics and decoherence of a spin qubit interacting with environmental spin ensembles.
 
-The package provides necessary data types for spin ensembles and control pulses, as well as a collection of functions that are widely used in magnetic resonance and spin dynamics, such as free induction decay (FID) and Rabi driving.
-
-Users can easily use these abstractions to build their own control pulse sequences such as dynamical decoupling protocols and test their performance on various spin ensembles.
+The package provides necessary data types for environmental spin bath, driving pulses, and quantum control protocols, as well as a collection of functions that are widely used in magnetic resonance and quantum control, such as free induction decay (FID) and Rabi driving. 
+Users can easily use these abstractions to compose their own control sequences such as dynamical decoupling protocols and test their performance on various spin ensembles. 
 
 **The package is archived as the support material of my master thesis.**
 
