@@ -12,7 +12,6 @@ Users can easily use these abstractions to compose their own control sequences s
 https://doi.org/10.4121/19766887
 
 ## Spin Ensemble
-
 - Spin 1/2, randomly distributed, positional disorder.
 - Dipole-dipole interactions.
 - Tunable parameters like filling rate, cluster shape, cluster size, Zeeman field direction.  

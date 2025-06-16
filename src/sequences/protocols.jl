@@ -16,7 +16,7 @@ end
 
 function YX(h::Real,τ::Real, δ::Real=0; symmetry::Bool=false)
     if symmetry
-        return SquareSequence(h, τ, δ,vcat(reverse!(order_xy),order_xy))
+        return SquareSequence(h, τ, δ, vcat(reverse!(order_xy),order_xy))
     else
         return SquareSequence(h, τ, δ, reverse!(order_xy))
     end
